@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import date, datetime
 
 
 # Create the app
@@ -10,17 +10,23 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///period_tracking_app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-# Get the current date of the current month
-date_of_month = datetime.now().strftime("%d")
+# Get the current date
+current_date = datetime.now()
+# current month and year, given in name of month and full year
+current_month = current_date.strftime("%B %Y")
+# Current date in the month
+date_of_month = current_date.strftime("%d")
+
 
 # Turn date into int and if it equals 1, then create a new table in the db for that month
 if int(date_of_month) == 1:
     # How to create a new table
     class Month(db.Model):
+        __tablename__ = current_month
         id = db.Column(db.Integer, primary_key=True)
-        Date = db.Column(db.Date, unique=True, nullable=False)
-        Period_Started = db.Column(db.Boolean, nullable=False)
-        Period_ended = db.Column(db.Boolean, nullable=False)
+        date = db.Column(db.Date, unique=True, nullable=False)
+        period_started = db.Column(db.Boolean, nullable=False)
+        period_ended = db.Column(db.Boolean, nullable=False)
 
         # def __repr__(self):
         #     """This allows each book object to be identified by its title when printed"""
@@ -40,5 +46,5 @@ if int(date_of_month) == 1:
 # Input info about symptoms (headache, cramps, fatigue, etc.)
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# if __name__ == "__main__":
+#     app.run(debug=True)
