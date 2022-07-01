@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from datetime import date, datetime
+from datetime import datetime
 
 
 # Create the app
@@ -35,6 +35,16 @@ if int(date_of_month) == 1:
     # this executes the creation of the new table
     db.create_all()
 
+
+@app.route("/")
+def home():
+    # Get all the books from the database and set list equal to all_books
+    return render_template("index.html")
+
+
+# TODO: create logic for adding info to tables
+
+
 # TODO: Notification center
 # When should period be starting (assume 28 day cycle until learn from individual's pattern)
 # allow users to choose how far in advance they want to be notified
@@ -46,5 +56,5 @@ if int(date_of_month) == 1:
 # Input info about symptoms (headache, cramps, fatigue, etc.)
 
 
-# if __name__ == "__main__":
-#     app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
