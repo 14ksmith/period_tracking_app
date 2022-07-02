@@ -36,12 +36,12 @@ class New_Table(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Integer, nullable=False)
     day_of_week = db.Column(db.String(250), nullable=False)
-    period_started = db.Column(db.Boolean, nullable=True)
-    period_ended = db.Column(db.Boolean, nullable=True)
-    cramps = db.Column(db.Boolean, nullable=True)
-    headache = db.Column(db.Boolean, nullable=True)
-    fatigue = db.Column(db.Boolean, nullable=True)
-    acne = db.Column(db.Boolean, nullable=True)
+    period_started = db.Column(db.String(250), nullable=True)
+    period_ended = db.Column(db.String(250), nullable=True)
+    cramps = db.Column(db.String(250), nullable=True)
+    headache = db.Column(db.String(250), nullable=True)
+    fatigue = db.Column(db.String(250), nullable=True)
+    acne = db.Column(db.String(250), nullable=True)
 
 
 def add_days_to_table():
@@ -77,12 +77,17 @@ def update_period_start_date(
 
 # -----------------------------------------------------------------------------------------------------------------------------#
 
+# TODO: Crate logic that only executes the creation of a new table if one for that month does not already exist
+# what i have below wont work
+table_exists = False
+
 # TODO: Change if date == back to 1
 # If date equals 1, then create a new table in the db for that month
-if date_of_month == 2:
+if date_of_month == 2 and table_exists == False:
     # this executes the creation of the new table
     db.create_all()
     add_days_to_table()
+    table_exists = True
 
 # TODO: Notification center
 # When should period be starting (assume 28 day cycle until learn from individual's pattern)
@@ -104,8 +109,33 @@ def home():
     )
 
 
-@app.route("/edit")
+@app.route("/edit", methods=["post", "get"])
 def edit_day():
+    if request.method == "POST":
+        # Get the day 'id' from the form
+        day_id = request.form["id"]
+        # Choose the day to update based off of the id above
+        update_day = New_Table.query.get(day_id)
+        # Update the period_started in the database
+        update_day.period_started = request.form["period_start"]
+        # Update the period_ended in the database
+        update_day.period_ended = request.form["period_end"]
+        # Update cramps in the database
+        update_day.cramps = request.form["cramps"]
+        # Update headache in the database
+        update_day.headache = request.form["headache"]
+        # Update acne in the database
+        update_day.acne = request.form["acne"]
+        # Update fatigue in the database
+        update_day.fatigue = request.form["fatigue"]
+        # Commit the update to the database
+        db.session.commit()
+        # Bring back the homepage
+        return redirect(url_for("home"))
+    # Get the id from the url (after the /edit?)
+    day_id = request.args.get("id")
+    # Get the day from the New_Table table with the chosen id
+    selected_day = New_Table.query.get(day_id)
     return render_template("edit.html", day=selected_day)
 
 

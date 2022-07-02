@@ -136,7 +136,9 @@ body {font-family: Verdana, sans-serif;}
         <!-- add one position per day in the given month, and display the date for each day.-->
         {% for day in days: %}
         <li>
-            <a href="{{url_for('edit_day')}}">{{ day.date }}</a>
+            <!-- Add a link to the url for edit_day, and add the id of the selected day to the end of the url (ex: /edit?id=1)-->
+            <!-- The link is followed by clicking on each number day in the calendar-->
+            <a href="{{url_for('edit_day', id=day.id)}}">{{ day.date }}</a>
         </li>
         {% endfor %}
     </ul>
