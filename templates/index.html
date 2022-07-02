@@ -138,7 +138,10 @@ body {font-family: Verdana, sans-serif;}
         <li>
             <!-- Add a link to the url for edit_day, and add the id of the selected day to the end of the url (ex: /edit?id=1)-->
             <!-- The link is followed by clicking on each number day in the calendar-->
-            <a href="{{url_for('edit_day', id=day.id)}}">{{ day.date }}</a>
+            <a href="{{url_for('day_details', id=day.id)}}">{{ day.date }}</a>
+            {% if day.period_started == 'Yes': %}
+              <a>🩸</a>
+            {% endif %}
         </li>
         {% endfor %}
     </ul>

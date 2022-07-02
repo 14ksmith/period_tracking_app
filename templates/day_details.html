@@ -7,42 +7,36 @@
     <title>Edit Date</title>
 </head>
 <body>
-    <form action="{{ url_for('edit_day') }}" method="POST">
+    <form action="{{ url_for('day_details') }}" method="POST">
         <!-- Allow user to edit period_started, period_ended, and symptoms. Then save changes to the database-->
-        <label>Did your period start today?</label>
+        <label>Are you on your period? {{ day.period_started }}</label>
         <select name="period_start">
-            <option value="yes">No</option>
-            <option value="no">Yes</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
         </select>
         <br><br>
-        <label>Did your period end today?</label>
-        <select name="period_end">
-            <option value="yes">No</option>
-            <option value="no">Yes</option>
-        </select>
-        <br><br>
-        <label>Do you have a headache?</label>
+        <label>Do you have a headache? {{ day.headache }}</label>
         <select name="headache">
-            <option value="yes">No</option>
-            <option value="no">Yes</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
         </select>
         <br><br>
-        <label>Do you have cramps?</label>
+        <label>Do you have cramps? {{ day.cramps }}</label>
         <select name="cramps">
-            <option value="yes">No</option>
-            <option value="no">yes</option>
+            <option value="No">No</option>
+            <option value="Yes">yes</option>
         </select>
         <br><br>
-        <label>Do you have acne?</label>
+        <label>Do you have acne? {{ day.acne }}</label>
         <select name="acne">
-            <option value="yes">No</option>
-            <option value="no">Yes</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
         </select>
         <br><br>
-        <label>Are you feeling tired?</label>
+        <label>Are you feeling tired? {{ day.fatigue }}</label>
         <select name="fatigue">
-            <option value="yes">No</option>
-            <option value="no">Yes</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
         </select>
         <br><br>
         <!--Include the line below so that when submitting, can draw the id for the specific day from the form so the db can be updated-->

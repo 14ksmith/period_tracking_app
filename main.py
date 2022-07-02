@@ -37,7 +37,6 @@ class New_Table(db.Model):
     date = db.Column(db.Integer, nullable=False)
     day_of_week = db.Column(db.String(250), nullable=False)
     period_started = db.Column(db.String(250), nullable=True)
-    period_ended = db.Column(db.String(250), nullable=True)
     cramps = db.Column(db.String(250), nullable=True)
     headache = db.Column(db.String(250), nullable=True)
     fatigue = db.Column(db.String(250), nullable=True)
@@ -51,28 +50,24 @@ def add_days_to_table():
         add_day = New_Table(
             date=day,
             day_of_week=weekday,
-            period_started=None,
-            period_ended=None,
-            cramps=None,
-            headache=None,
-            fatigue=None,
-            acne=None,
+            period_started="No",
+            cramps="No",
+            headache="No",
+            fatigue="No",
+            acne="No",
         )
         db.session.add(add_day)
         db.session.commit()
 
 
-# TODO: create logic for adding info to tables
-
-
-def update_period_start_date(
-    whatever_day_user_wants_to_edit, bool_user_wants_to_change_to
-):
-    """Allow user to change whether their period started on a particular day."""
-    day_id = whatever_day_user_wants_to_edit
-    day_to_update = New_Table.query.get(day_id)
-    day_to_update.period_started = bool_user_wants_to_change_to
-    db.session.commit()
+# def update_period_start_date(
+#     whatever_day_user_wants_to_edit, bool_user_wants_to_change_to
+# ):
+#     """Allow user to change whether their period started on a particular day."""
+#     day_id = whatever_day_user_wants_to_edit
+#     day_to_update = New_Table.query.get(day_id)
+#     day_to_update.period_started = bool_user_wants_to_change_to
+#     db.session.commit()
 
 
 # -----------------------------------------------------------------------------------------------------------------------------#
@@ -109,8 +104,8 @@ def home():
     )
 
 
-@app.route("/edit", methods=["post", "get"])
-def edit_day():
+@app.route("/details", methods=["post", "get"])
+def day_details():
     if request.method == "POST":
         # Get the day 'id' from the form
         day_id = request.form["id"]
@@ -118,8 +113,6 @@ def edit_day():
         update_day = New_Table.query.get(day_id)
         # Update the period_started in the database
         update_day.period_started = request.form["period_start"]
-        # Update the period_ended in the database
-        update_day.period_ended = request.form["period_end"]
         # Update cramps in the database
         update_day.cramps = request.form["cramps"]
         # Update headache in the database
@@ -136,7 +129,8 @@ def edit_day():
     day_id = request.args.get("id")
     # Get the day from the New_Table table with the chosen id
     selected_day = New_Table.query.get(day_id)
-    return render_template("edit.html", day=selected_day)
+
+    return render_template("day_details.html", day=selected_day)
 
 
 if __name__ == "__main__":
