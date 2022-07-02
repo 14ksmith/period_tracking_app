@@ -6,7 +6,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Period Tracker</title>
 </head>
+<style> 
+* {box-sizing: border-box;}
+ul {list-style-type: none;}
+body {font-family: Verdana, sans-serif;}
+
+.month {
+  padding: 75px 25px;
+  width: 100%;
+  background: #C4DFAA;
+  text-align: center;
+}
+
+.month ul {
+  margin: 0;
+  padding: 0;
+}
+
+.month ul li {
+  color: white;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.month .prev {
+  float: left;
+  padding-top: 10px;
+}
+
+.month .next {
+  float: right;
+  padding-top: 10px;
+}
+
+.weekdays {
+  margin: 0;
+  padding: 10px 0;
+  background-color: #ddd;
+}
+
+.weekdays li {
+  display: inline-block;
+  width: 13.6%;
+  color: #666;
+  text-align: center;
+}
+
+.days {
+  padding: 10px 0;
+  background: #eee;
+  margin: 0;
+  
+}
+
+.days li {
+  list-style-type: none;
+  display: inline-block;
+  width: 13.6%;
+  text-align: center;
+  padding: 20px 0;
+  margin-bottom: 5px;
+  font-size:12px;
+  color: black;
+}
+
+.days li .active {
+  padding: 5px;
+  background: #1abc9c;
+  color: white !important
+}
+</style>
 <body>
     <h1>My Period Tracker</h1>
+    <div class="month">      
+        <ul>
+          <li class="prev">&#10094;</li>
+          <li class="next">&#10095;</li>
+          <li>
+            {{ month }}
+          </li>
+        </ul>
+      </div>
+    <ul class="weekdays">
+        <!-- list for the days of the week -->
+        <li>Su</li>
+        <li>Mo</li>
+        <li>Tu</li>
+        <li>We</li>
+        <li>Th</li>
+        <li>Fr</li>
+        <li>Sa</li>
+    </ul>
+    <ul class="days"> 
+        <!-- list for days in the month. Depending on what day of the week the 1st is, add extra positions at the beginning -->
+        {% if weekday == "Monday": %}
+        <li></li>
+        {% endif %}
+        {% if weekday == "Tuesday": %}
+        <li></li>
+        <li></li>
+        {% endif %}
+        {% if weekday == "Wednesday": %}
+        <li></li>
+        <li></li>
+        <li></li>
+        {% endif %}
+        {% if weekday == "Thursday": %}
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        {% endif %}
+        {% if weekday == "Friday": %}
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        {% endif %}
+        {% if weekday == "Saturday": %}
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        {% endif %}
+        <!-- add one position per day in the given month, and display the date for each day.-->
+        {% for day in days: %}
+        <li>
+            <a href="{{url_for('edit_day')}}">{{ day.date }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    
 </body>
 </html>
