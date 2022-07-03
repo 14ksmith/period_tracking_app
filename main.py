@@ -141,6 +141,8 @@ def home():
         weekday=first_of_the_month_weekday,
         month_and_year=current_month_and_year,
         month=current_month_name,
+        next_month=list_of_months[list_of_months.index(current_month_name) + 1],
+        last_month=list_of_months[list_of_months.index(current_month_name) - 1],
     )
 
 

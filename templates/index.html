@@ -5,6 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Period Tracker</title>
+    <!--TODO: figure out how to link the stylesheet-->
+    <!-- <link rel="stylesheet" href="./css/styles.css"> -->
 </head>
 <style> 
 * {box-sizing: border-box;}
@@ -81,11 +83,13 @@ body {font-family: Verdana, sans-serif;}
     <h1>My Period Tracker</h1>
     <div class="month">      
         <ul>
+          <!-- 'prev' class for back arrow button that links to the home page with last month's calendar-->
           <li class="prev">
-            <a href="{{url_for('day_details')}}"> &#10094 </a>
+            <a href="{{url_for('home', month=last_month)}}"> &#10094 </a>
           </li>
+          <!-- 'next' class for forward arrow button that links to the home page with next month's calendar-->
           <li class="next">
-            <a href="{{url_for('day_details')}}"> &#10095 </a>
+            <a href="{{url_for('home', month=next_month)}}"> &#10095 </a>
           </li>
           <li>
             {{ month_and_year }}
