@@ -1,10 +1,11 @@
+from importlib.metadata import metadata
+from venv import create
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from calendar import month, monthrange
+from calendar import monthrange
 
 from sqlalchemy import true
-
 
 # Create the app
 app = Flask(__name__)
@@ -60,29 +61,17 @@ def add_days_to_table():
         db.session.commit()
 
 
-# def update_period_start_date(
-#     whatever_day_user_wants_to_edit, bool_user_wants_to_change_to
-# ):
-#     """Allow user to change whether their period started on a particular day."""
-#     day_id = whatever_day_user_wants_to_edit
-#     day_to_update = New_Table.query.get(day_id)
-#     day_to_update.period_started = bool_user_wants_to_change_to
-#     db.session.commit()
-
-
 # -----------------------------------------------------------------------------------------------------------------------------#
 
-# TODO: Crate logic that only executes the creation of a new table if one for that month does not already exist
-# what i have below wont work
-table_exists = False
+# List of table names in the database
+table_names = db.engine.table_names()
 
-# TODO: Change if date == back to 1
-# If date equals 1, then create a new table in the db for that month
-if date_of_month == 2 and table_exists == False:
+# If there is not already a table in the database with the name of the current month and year, create a new table
+if current_month_and_year not in table_names:
     # this executes the creation of the new table
     db.create_all()
     add_days_to_table()
-    table_exists = True
+
 
 # TODO: Notification center
 # When should period be starting (assume 28 day cycle until learn from individual's pattern)
