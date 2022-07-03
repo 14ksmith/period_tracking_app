@@ -7,6 +7,8 @@
     <title>Edit Date</title>
 </head>
 <body>
+    <!--TODO: make the dropdown option menu for each characteristic display what is currently in the database-->
+    <!--Maybe using the 'selected' attribute??-->
     <form action="{{ url_for('day_details') }}" method="POST">
         <!-- Allow user to edit period_started, period_ended, and symptoms. Then save changes to the database-->
         <label>Are you on your period? {{ day.period_started }}</label>

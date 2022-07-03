@@ -81,10 +81,14 @@ body {font-family: Verdana, sans-serif;}
     <h1>My Period Tracker</h1>
     <div class="month">      
         <ul>
-          <li class="prev">&#10094;</li>
-          <li class="next">&#10095;</li>
+          <li class="prev">
+            <a href="{{url_for('day_details')}}"> &#10094 </a>
+          </li>
+          <li class="next">
+            <a href="{{url_for('day_details')}}"> &#10095 </a>
+          </li>
           <li>
-            {{ month }}
+            {{ month_and_year }}
           </li>
         </ul>
       </div>
@@ -145,6 +149,5 @@ body {font-family: Verdana, sans-serif;}
         </li>
         {% endfor %}
     </ul>
-    
 </body>
 </html>
