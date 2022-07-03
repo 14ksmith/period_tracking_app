@@ -1,5 +1,3 @@
-from importlib.metadata import metadata
-from venv import create
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -28,6 +26,8 @@ date_of_month = int(current_date.strftime("%d"))
 weekday = current_date.strftime("%A")
 # Number of days in current month
 days_in_month = monthrange(year=current_year, month=current_month)[1]
+# Weekday that the first of the month is on
+first_of_the_month_weekday = current_date.replace(day=1).strftime("%A")
 
 
 # create a new table for the month
@@ -89,7 +89,10 @@ def home():
     # Get all entries for each day from the database and set equal to 'Month'
     month_days = db.session.query(New_Table).all()
     return render_template(
-        "index.html", days=month_days, weekday=weekday, month=current_month_and_year
+        "index.html",
+        days=month_days,
+        weekday=first_of_the_month_weekday,
+        month=current_month_and_year,
     )
 
 
