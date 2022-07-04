@@ -128,6 +128,29 @@ if current_month_and_year not in table_names:
 
 @app.route("/")
 def home():
+    return render_template(
+        "index.html", current_month=f"{current_month_name}{current_year}"
+    )
+    # # Get the table for the current month. That table will be rendered into the calendar and displayed as the homepage
+    # current_month_table = get_class_from_tablename(
+    #     tablename=f"{current_month_and_year}"
+    # )
+    # # Get all entries for each day in the current_month_table from the database and set equal to 'month_days'
+    # month_days = db.session.query(current_month_table).all()
+    # # Send user to the homepage by rendering "index.html" with the following parameters
+    # return render_template(
+    #     "index.html",
+    #     days=month_days,
+    #     weekday=first_of_the_month_weekday,
+    #     month_and_year=current_month_and_year,
+    #     month=current_month_name,
+    #     next_month=f"{list_of_months[list_of_months.index(current_month_name) + 1]} {current_year}",
+    #     last_month=f"{list_of_months[list_of_months.index(current_month_name) - 1]} {current_year}",
+    # )
+
+
+@app.route("/calendar")
+def calendar():
     # Get the table for the current month. That table will be rendered into the calendar and displayed as the homepage
     current_month_table = get_class_from_tablename(
         tablename=f"{current_month_and_year}"
@@ -136,13 +159,13 @@ def home():
     month_days = db.session.query(current_month_table).all()
     # Send user to the homepage by rendering "index.html" with the following parameters
     return render_template(
-        "index.html",
+        "calendar.html",
         days=month_days,
         weekday=first_of_the_month_weekday,
         month_and_year=current_month_and_year,
         month=current_month_name,
-        next_month=list_of_months[list_of_months.index(current_month_name) + 1],
-        last_month=list_of_months[list_of_months.index(current_month_name) - 1],
+        next_month=f"{list_of_months[list_of_months.index(current_month_name) + 1]}{current_year}",
+        last_month=f"{list_of_months[list_of_months.index(current_month_name) - 1]}{current_year}",
     )
 
 
