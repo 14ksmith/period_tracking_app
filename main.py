@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from calendar import monthrange
+from requests import get
 
 from sqlalchemy import table, true
 
@@ -98,12 +99,6 @@ def add_days_to_table(month):
 # List of table names in the database
 table_names = db.engine.table_names()
 
-# # If there is not already a table in the database with the name of the current month and year, create a new table
-# if current_month_and_year not in table_names:
-#     # this executes the creation of the new table
-#     db.create_all()
-#     add_days_to_table()
-
 # if there is not already a table in the db with current month and year, for each month in the year make a new table
 if current_month_and_year not in table_names:
     for month in list_of_months:
@@ -129,44 +124,36 @@ if current_month_and_year not in table_names:
 @app.route("/")
 def home():
     return render_template(
-        "index.html", current_month=f"{current_month_name}{current_year}"
+        "index.html", current_month=current_month_name, current_year=current_year
     )
-    # # Get the table for the current month. That table will be rendered into the calendar and displayed as the homepage
-    # current_month_table = get_class_from_tablename(
-    #     tablename=f"{current_month_and_year}"
-    # )
-    # # Get all entries for each day in the current_month_table from the database and set equal to 'month_days'
-    # month_days = db.session.query(current_month_table).all()
-    # # Send user to the homepage by rendering "index.html" with the following parameters
-    # return render_template(
-    #     "index.html",
-    #     days=month_days,
-    #     weekday=first_of_the_month_weekday,
-    #     month_and_year=current_month_and_year,
-    #     month=current_month_name,
-    #     next_month=f"{list_of_months[list_of_months.index(current_month_name) + 1]} {current_year}",
-    #     last_month=f"{list_of_months[list_of_months.index(current_month_name) - 1]} {current_year}",
-    # )
 
 
 @app.route("/calendar")
 def calendar():
-    # Get the table for the current month. That table will be rendered into the calendar and displayed as the homepage
-    current_month_table = get_class_from_tablename(
-        tablename=f"{current_month_and_year}"
-    )
-    # Get all entries for each day in the current_month_table from the database and set equal to 'month_days'
-    month_days = db.session.query(current_month_table).all()
+
+    # Get the name of the month from the url arg 'month'
+    month_name = request.args.get("month")
+    year = request.args.get("year")
+    month_and_year_name = f"{month_name} {year}"
+    # Get the table from the database associated with the name of the month above
+    month_table = get_class_from_tablename(tablename=f"{month_name} {year}")
+    # Get all entries for each day in the month_table from the database and set equal to 'month_days'
+    month_days = db.session.query(month_table).all()
+
     # Send user to the homepage by rendering "index.html" with the following parameters
     return render_template(
         "calendar.html",
         days=month_days,
         weekday=first_of_the_month_weekday,
-        month_and_year=current_month_and_year,
-        month=current_month_name,
-        next_month=f"{list_of_months[list_of_months.index(current_month_name) + 1]}{current_year}",
-        last_month=f"{list_of_months[list_of_months.index(current_month_name) - 1]}{current_year}",
+        month_and_year=month_and_year_name,
+        year=year,
+        month=month_name,
+        next_month=list_of_months[list_of_months.index(month_name) + 1],
+        last_month=list_of_months[list_of_months.index(month_name) - 1],
     )
+
+
+# TODO: When I try to go to the previous or next calendar, the month shows up but not the days. Has something to do with the above logic
 
 
 @app.route("/details", methods=["post", "get"])

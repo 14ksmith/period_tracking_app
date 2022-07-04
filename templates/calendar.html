@@ -80,21 +80,21 @@ body {font-family: Verdana, sans-serif;}
 }
 </style>
 <body>
-    <h1>My Period Tracker</h1>
-    <div class="month">      
+    <div class="month">  
         <ul>
-          <!-- 'prev' class for back arrow button that links to the home page with last month's calendar-->
-          <li class="prev">
-            <a href="{{url_for('calendar', month=last_month)}}"> &#10094 </a>
-          </li>
-          <!-- 'next' class for forward arrow button that links to the home page with next month's calendar-->
-          <li class="next">
-            <a href="{{url_for('calendar', month=next_month)}}"> &#10095 </a>
-          </li>
-          <li>
-            {{ month_and_year }}
-          </li>
+            <!-- 'prev' class for back arrow button that links to the home page with last month's calendar-->
+            <li class="prev">
+                <a href="{{url_for('calendar', month=last_month, year=year)}}"> &#10094 </a>
+            </li>
+            <!-- 'next' class for forward arrow button that links to the home page with next month's calendar-->
+            <li class="next" >
+                <a href="{{url_for('calendar', month=next_month, year=year)}}"> &#10095 </a>
+            </li>
+            <li>
+                {{ month_and_year }}
+            </li>
         </ul>
+        </form>
       </div>
     <ul class="weekdays">
         <!-- list for the days of the week -->
