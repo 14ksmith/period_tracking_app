@@ -3,8 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from calendar import monthrange
 from requests import get
+import time
 
-from sqlalchemy import table, true
+from sqlalchemy import table, true, insert
 
 # ------------------------------- Datetime Variables --------------------------------------#
 list_of_months = [
@@ -45,6 +46,7 @@ dict_number_of_days_in_each_month = {
     month: monthrange(year=current_year, month=(list_of_months.index(month) + 1))[1]
     for month in list_of_months
 }
+# print(dict_number_of_days_in_each_month)
 # ----------------------------------------------------------------------------------------#
 
 # Create the app
@@ -56,17 +58,22 @@ db = SQLAlchemy(app)
 
 
 # create a new table for the month
-class New_Table(db.Model):
+class Month(db.Model):
+    def __init__(self, month, **kwargs):
+        super(Month, self).__init__(**kwargs)
 
-    __tablename__ = current_month_and_year
-    id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Integer, nullable=False)
-    day_of_week = db.Column(db.String(250), nullable=False)
-    period_started = db.Column(db.String(250), nullable=True)
-    cramps = db.Column(db.String(250), nullable=True)
-    headache = db.Column(db.String(250), nullable=True)
-    fatigue = db.Column(db.String(250), nullable=True)
-    acne = db.Column(db.String(250), nullable=True)
+        __tablename__ = f"{month} {current_year}"
+        __table_args__ = {"extend_existing": True}
+        self.id = db.Column(db.Integer, primary_key=True)
+        self.date = db.Column(db.Integer, nullable=False)
+        self.day_of_week = db.Column(db.String(250), nullable=False)
+        self.period_started = db.Column(db.String(250), nullable=True)
+        self.cramps = db.Column(db.String(250), nullable=True)
+        self.headache = db.Column(db.String(250), nullable=True)
+        self.fatigue = db.Column(db.String(250), nullable=True)
+        self.acne = db.Column(db.String(250), nullable=True)
+
+        db.create_all()
 
 
 def get_class_from_tablename(tablename):
@@ -76,18 +83,17 @@ def get_class_from_tablename(tablename):
             return c
 
 
-# def print_table_name_for_each_class():
-#     """Get the specific class given the table name, and return that class."""
-#     for c in db.Model.__subclasses__():
-#         print(c.__tablename__)
+def print_table_name_for_each_class():
+    """Get the specific class given the table name, and return that class."""
+    for c in db.Model.__subclasses__():
+        print(f"Table name from subclass: {c.__tablename__}")
 
 
 def add_days_to_table(month):
     """Add a row for each day of the month along with columns listed below to the data table."""
     num_days_in_month = dict_number_of_days_in_each_month.get(month)
     for day in range(1, num_days_in_month + 1):
-        # add day of month to the table in the database
-        add_day = New_Table(
+        stmt = insert(f"{month} {current_year}").values(
             date=day,
             day_of_week=weekday,
             period_started="No",
@@ -96,8 +102,13 @@ def add_days_to_table(month):
             fatigue="No",
             acne="No",
         )
-        db.session.add(add_day)
-        db.session.commit()
+        compiled = stmt.compile()
+        with db.engine.connect() as conn:
+            result = conn.execute(stmt)
+            conn.commit()
+        # add day of month to the table in the database
+        # db.session.add(add_day)
+        # db.session.commit()
 
 
 # -----------------------------------------------------------------------------------------------------------------------------#
@@ -109,22 +120,14 @@ table_names = db.engine.table_names()
 if current_month_and_year not in table_names:
     for month in list_of_months:
         # create a new table for the month
-        class New_Table(db.Model):
 
-            __tablename__ = f"{month} {current_year}"
-            __table_args__ = {"extend_existing": True}
-            id = db.Column(db.Integer, primary_key=True)
-            date = db.Column(db.Integer, nullable=False)
-            day_of_week = db.Column(db.String(250), nullable=False)
-            period_started = db.Column(db.String(250), nullable=True)
-            cramps = db.Column(db.String(250), nullable=True)
-            headache = db.Column(db.String(250), nullable=True)
-            fatigue = db.Column(db.String(250), nullable=True)
-            acne = db.Column(db.String(250), nullable=True)
-
-        db.create_all()
+        new_month_table = Month(month=month)
 
         add_days_to_table(month=month)
+
+# print(f"Table Names List: {table_names}")
+
+# print_table_name_for_each_class()
 
 
 @app.route("/")
@@ -141,10 +144,8 @@ def calendar():
     month_name = request.args.get("month")
     year = request.args.get("year")
     month_and_year_name = f"{month_name} {year}"
-    print(month_and_year_name)
     # Get the table from the database associated with the name of the month above
-    month_table = get_class_from_tablename(tablename=month_and_year_name)
-    print(month_table)
+    month_table = get_class_from_tablename(tablename=f"{month_name} {year}")
     # Get all entries for each day in the month_table from the database and set equal to 'month_days'
     month_days = db.session.query(month_table).all()
 
@@ -170,7 +171,7 @@ def day_details():
         # Get the day 'id' from the form
         day_id = request.form["id"]
         # Choose the day to update based off of the id above
-        update_day = New_Table.query.get(day_id)
+        update_day = Month.query.get(day_id)
         # Update the period_started in the database
         update_day.period_started = request.form["period_start"]
         # Update cramps in the database
@@ -188,7 +189,7 @@ def day_details():
     # Get the id from the url (after the /edit?)
     day_id = request.args.get("id")
     # Get the day from the New_Table table with the chosen id
-    selected_day = New_Table.query.get(day_id)
+    selected_day = Month.query.get(day_id)
 
     return render_template("day_details.html", day=selected_day)
 
