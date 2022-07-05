@@ -76,6 +76,12 @@ def get_class_from_tablename(tablename):
             return c
 
 
+# def print_table_name_for_each_class():
+#     """Get the specific class given the table name, and return that class."""
+#     for c in db.Model.__subclasses__():
+#         print(c.__tablename__)
+
+
 def add_days_to_table(month):
     """Add a row for each day of the month along with columns listed below to the data table."""
     num_days_in_month = dict_number_of_days_in_each_month.get(month)
@@ -135,8 +141,10 @@ def calendar():
     month_name = request.args.get("month")
     year = request.args.get("year")
     month_and_year_name = f"{month_name} {year}"
+    print(month_and_year_name)
     # Get the table from the database associated with the name of the month above
-    month_table = get_class_from_tablename(tablename=f"{month_name} {year}")
+    month_table = get_class_from_tablename(tablename=month_and_year_name)
+    print(month_table)
     # Get all entries for each day in the month_table from the database and set equal to 'month_days'
     month_days = db.session.query(month_table).all()
 
