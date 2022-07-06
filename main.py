@@ -1,6 +1,7 @@
+from turtle import clearstamps
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import date, datetime
 from calendar import monthrange
 from requests import get
 import time
@@ -56,24 +57,37 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///period_tracking_app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-
 # create a new table for the month
 class Month(db.Model):
-    def __init__(self, month, **kwargs):
-        super(Month, self).__init__(**kwargs)
 
+    id = db.Column(db.Integer, primary_key=True)
+    day = db.Column(db.Integer, nullable=False)
+    day_of_week = db.Column(db.String(250), nullable=False)
+    period_started = db.Column(db.String(250), nullable=True)
+    cramps = db.Column(db.String(250), nullable=True)
+    headache = db.Column(db.String(250), nullable=True)
+    fatigue = db.Column(db.String(250), nullable=True)
+    acne = db.Column(db.String(250), nullable=True)
+
+    def __init__(
+        self,
+        month=None,
+        day=None,
+        day_of_week=None,
+        period_started=None,
+        cramps=None,
+        headache=None,
+        fatigue=None,
+        acne=None,
+    ):
         __tablename__ = f"{month} {current_year}"
-        __table_args__ = {"extend_existing": True}
-        self.id = db.Column(db.Integer, primary_key=True)
-        self.date = db.Column(db.Integer, nullable=False)
-        self.day_of_week = db.Column(db.String(250), nullable=False)
-        self.period_started = db.Column(db.String(250), nullable=True)
-        self.cramps = db.Column(db.String(250), nullable=True)
-        self.headache = db.Column(db.String(250), nullable=True)
-        self.fatigue = db.Column(db.String(250), nullable=True)
-        self.acne = db.Column(db.String(250), nullable=True)
-
-        db.create_all()
+        self.date = day
+        self.day_of_week = day_of_week
+        self.period_started = period_started
+        self.cramps = cramps
+        self.headache = headache
+        self.fatigue = fatigue
+        self.acne = acne
 
 
 def get_class_from_tablename(tablename):
@@ -93,8 +107,8 @@ def add_days_to_table(month):
     """Add a row for each day of the month along with columns listed below to the data table."""
     num_days_in_month = dict_number_of_days_in_each_month.get(month)
     for day in range(1, num_days_in_month + 1):
-        stmt = insert(f"{month} {current_year}").values(
-            date=day,
+        add_day = Month(
+            day=day,
             day_of_week=weekday,
             period_started="No",
             cramps="No",
@@ -102,13 +116,10 @@ def add_days_to_table(month):
             fatigue="No",
             acne="No",
         )
-        compiled = stmt.compile()
-        with db.engine.connect() as conn:
-            result = conn.execute(stmt)
-            conn.commit()
+
         # add day of month to the table in the database
-        # db.session.add(add_day)
-        # db.session.commit()
+        db.session.dd(add_day)
+        db.session.commit()
 
 
 # -----------------------------------------------------------------------------------------------------------------------------#
@@ -121,13 +132,9 @@ if current_month_and_year not in table_names:
     for month in list_of_months:
         # create a new table for the month
 
-        new_month_table = Month(month=month)
+        new_month_table = Month()
 
-        add_days_to_table(month=month)
-
-# print(f"Table Names List: {table_names}")
-
-# print_table_name_for_each_class()
+        # add_days_to_table(month=month)
 
 
 @app.route("/")
