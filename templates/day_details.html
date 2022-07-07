@@ -11,38 +11,38 @@
     <!--Maybe using the 'selected' attribute??-->
     <form action="{{ url_for('day_details') }}" method="POST">
         <!-- Allow user to edit period_started, period_ended, and symptoms. Then save changes to the database-->
-        <label>Are you on your period? {{ day.period_started }}</label>
+        <label>Are you on your period? {{ day['period_started'] }}</label>
         <select name="period_start">
             <option value="No">No</option>
             <option value="Yes">Yes</option>
         </select>
         <br><br>
-        <label>Do you have a headache? {{ day.headache }}</label>
+        <label>Do you have a headache? {{ day['headache'] }}</label>
         <select name="headache">
             <option value="No">No</option>
             <option value="Yes">Yes</option>
         </select>
         <br><br>
-        <label>Do you have cramps? {{ day.cramps }}</label>
+        <label>Do you have cramps? {{ day['cramps'] }}</label>
         <select name="cramps">
             <option value="No">No</option>
             <option value="Yes">yes</option>
         </select>
         <br><br>
-        <label>Do you have acne? {{ day.acne }}</label>
+        <label>Do you have acne? {{ day['acne'] }}</label>
         <select name="acne">
             <option value="No">No</option>
             <option value="Yes">Yes</option>
         </select>
         <br><br>
-        <label>Are you feeling tired? {{ day.fatigue }}</label>
+        <label>Are you feeling tired? {{ day['fatigue'] }}</label>
         <select name="fatigue">
             <option value="No">No</option>
             <option value="Yes">Yes</option>
         </select>
         <br><br>
         <!--Include the line below so that when submitting, can draw the id for the specific day from the form so the db can be updated-->
-        <input hidden="hidden" name="id" value="{{day.id}}">
+        <input hidden="hidden" name="day" value="{{ day['day'] }}">
         <!--Button that saves the changes to the database-->
         <button type="submit">Save</button>
     </form>

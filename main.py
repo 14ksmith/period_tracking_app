@@ -5,8 +5,9 @@ from datetime import date, datetime
 from calendar import monthrange
 from requests import get
 import time
+import sqlite3
 
-from sqlalchemy import table, true, insert
+from sqlalchemy import table, true, insert, create_engine, MetaData
 
 # ------------------------------- Datetime Variables --------------------------------------#
 list_of_months = [
@@ -27,7 +28,7 @@ list_of_months = [
 # Get the current date
 current_date = datetime.now()
 # current month and year, given in name of month and full year
-current_month_and_year = current_date.strftime("%B %Y")
+current_month_and_year = current_date.strftime("%B_%Y")
 # current year as an int
 current_year = int(current_date.strftime("%Y"))
 # current month as an int
@@ -49,92 +50,62 @@ dict_number_of_days_in_each_month = {
 }
 # print(dict_number_of_days_in_each_month)
 # ----------------------------------------------------------------------------------------#
-
-# Create the app
 app = Flask(__name__)
-# create the database if it is not already created
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///period_tracking_app.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db = SQLAlchemy(app)
-
-# create a new table for the month
-class Month(db.Model):
-
-    id = db.Column(db.Integer, primary_key=True)
-    day = db.Column(db.Integer, nullable=False)
-    day_of_week = db.Column(db.String(250), nullable=False)
-    period_started = db.Column(db.String(250), nullable=True)
-    cramps = db.Column(db.String(250), nullable=True)
-    headache = db.Column(db.String(250), nullable=True)
-    fatigue = db.Column(db.String(250), nullable=True)
-    acne = db.Column(db.String(250), nullable=True)
-
-    def __init__(
-        self,
-        month=None,
-        day=None,
-        day_of_week=None,
-        period_started=None,
-        cramps=None,
-        headache=None,
-        fatigue=None,
-        acne=None,
-    ):
-        __tablename__ = f"{month} {current_year}"
-        self.date = day
-        self.day_of_week = day_of_week
-        self.period_started = period_started
-        self.cramps = cramps
-        self.headache = headache
-        self.fatigue = fatigue
-        self.acne = acne
+engine = create_engine("sqlite:///period_tracking_app.db")
+metadata = MetaData(bind=engine)
 
 
-def get_class_from_tablename(tablename):
-    """Get the specific class given the table name, and return that class."""
-    for c in db.Model.__subclasses__():
-        if c.__tablename__ == tablename:
-            return c
+def get_db_connection():
+    conn = sqlite3.connect("period_tracking_app.db")
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
-def print_table_name_for_each_class():
-    """Get the specific class given the table name, and return that class."""
-    for c in db.Model.__subclasses__():
-        print(f"Table name from subclass: {c.__tablename__}")
+def create_new_month_table(
+    table_name,
+):
+    engine.execute(
+        f"CREATE TABLE {table_name} (day Integer, day_of_week String, period_started String, cramps String, headache String, fatigue String, acne String)"
+    )
 
 
-def add_days_to_table(month):
-    """Add a row for each day of the month along with columns listed below to the data table."""
+def add_days_to_month_table(month, table_name):
     num_days_in_month = dict_number_of_days_in_each_month.get(month)
     for day in range(1, num_days_in_month + 1):
-        add_day = Month(
-            day=day,
-            day_of_week=weekday,
-            period_started="No",
-            cramps="No",
-            headache="No",
-            fatigue="No",
-            acne="No",
+        table_name = table_name
+        day = day
+        day_of_week = weekday
+        period_started = "No"
+        cramps = "No"
+        headache = "No"
+        fatigue = "No"
+        acne = "No"
+        engine.execute(
+            f"INSERT INTO {table_name} (day, day_of_week, period_started, cramps, headache, fatigue, acne) VALUES ('{day}', '{day_of_week}', '{period_started}', '{cramps}', '{headache}', '{fatigue}', '{acne}');"
         )
 
-        # add day of month to the table in the database
-        db.session.dd(add_day)
-        db.session.commit()
+
+def get_table_from_database(tablename):
+    """Get all entries for each day in the month_table from the database and set equal to 'month_days', return 'month_days"""
+    conn = get_db_connection()
+    month_days = conn.execute(f"SELECT * FROM {tablename}").fetchall()
+    conn.close()
+    return month_days
 
 
 # -----------------------------------------------------------------------------------------------------------------------------#
 
 # List of table names in the database
-table_names = db.engine.table_names()
+table_names = engine.table_names()
 
 # if there is not already a table in the db with current month and year, for each month in the year make a new table
 if current_month_and_year not in table_names:
     for month in list_of_months:
+        table_name = f"{month}_2022"
         # create a new table for the month
+        create_new_month_table(table_name=table_name)
 
-        new_month_table = Month()
-
-        # add_days_to_table(month=month)
+        add_days_to_month_table(table_name=table_name, month=month)
 
 
 @app.route("/")
@@ -146,15 +117,13 @@ def home():
 
 @app.route("/calendar")
 def calendar():
-
     # Get the name of the month from the url arg 'month'
     month_name = request.args.get("month")
+    # Get the name of the year from the url arg 'year'
     year = request.args.get("year")
     month_and_year_name = f"{month_name} {year}"
-    # Get the table from the database associated with the name of the month above
-    month_table = get_class_from_tablename(tablename=f"{month_name} {year}")
-    # Get all entries for each day in the month_table from the database and set equal to 'month_days'
-    month_days = db.session.query(month_table).all()
+    # Get all day entries in the month given
+    month_days = get_table_from_database(tablename=f"{month_name}_{year}")
 
     # Send user to the homepage by rendering "index.html" with the following parameters
     return render_template(
@@ -169,35 +138,48 @@ def calendar():
     )
 
 
-# TODO: When I try to go to the previous or next calendar, the month shows up but not the days. Has something to do with the above logic
-
-
 @app.route("/details", methods=["post", "get"])
 def day_details():
+    conn = get_db_connection()
+    # Get the day from the url (after the /edit?)
+    day_of_month = request.args.get("date")
+    month = request.args.get("month")
+    year = request.args.get("year")
     if request.method == "POST":
-        # Get the day 'id' from the form
-        day_id = request.form["id"]
-        # Choose the day to update based off of the id above
-        update_day = Month.query.get(day_id)
+        day_details = conn.execute(
+            f"SELECT * FROM {month}_{year} WHERE day = ?",
+            (day_of_month,),
+        ).fetchone()
         # Update the period_started in the database
-        update_day.period_started = request.form["period_start"]
+        update_period_started = request.form["period_start"]
         # Update cramps in the database
-        update_day.cramps = request.form["cramps"]
+        update_cramps = request.form["cramps"]
         # Update headache in the database
-        update_day.headache = request.form["headache"]
+        update_headache = request.form["headache"]
         # Update acne in the database
-        update_day.acne = request.form["acne"]
+        update_acne = request.form["acne"]
         # Update fatigue in the database
-        update_day.fatigue = request.form["fatigue"]
+        update_fatigue = request.form["fatigue"]
+        conn.execute(
+            f"UPDATE {month}_{year} SET  period_started= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
+            " WHERE id = ?",
+            (
+                update_period_started,
+                update_cramps,
+                update_headache,
+                update_acne,
+                update_fatigue,
+                day_details,
+            ),
+        )
         # Commit the update to the database
-        db.session.commit()
+        conn.commit()
         # Bring back the homepage
         return redirect(url_for("home"))
-    # Get the id from the url (after the /edit?)
-    day_id = request.args.get("id")
     # Get the day from the New_Table table with the chosen id
-    selected_day = Month.query.get(day_id)
-
+    selected_day = conn.execute(f"SELECT day FROM {month}_{year}").fetchone()
+    print(selected_day)
+    conn.close()
     return render_template("day_details.html", day=selected_day)
 
 
