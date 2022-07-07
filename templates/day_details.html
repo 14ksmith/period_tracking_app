@@ -41,8 +41,10 @@
             <option value="Yes">Yes</option>
         </select>
         <br><br>
-        <!--Include the line below so that when submitting, can draw the id for the specific day from the form so the db can be updated-->
+        <!--Include the lines below so that when submitting, can draw the id for the specific day from the form so the db can be updated-->
         <input hidden="hidden" name="day" value="{{ day['day'] }}">
+        <input hidden="hidden" name="month" value="{{ month }}">
+        <input hidden="hidden" name="year" value="{{ year }}">
         <!--Button that saves the changes to the database-->
         <button type="submit">Save</button>
     </form>

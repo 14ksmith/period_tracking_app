@@ -140,16 +140,14 @@ def calendar():
 
 @app.route("/details", methods=["post", "get"])
 def day_details():
-    conn = get_db_connection()
-    # Get the day from the url (after the /edit?)
     day_of_month = request.args.get("date")
     month = request.args.get("month")
     year = request.args.get("year")
+    # conn = get_db_connection()
+    # Get the day from the url (after the /edit?)
     if request.method == "POST":
-        day_details = conn.execute(
-            f"SELECT * FROM {month}_{year} WHERE day = ?",
-            (day_of_month,),
-        ).fetchone()
+        month = request.form["month"]
+        year = request.form["year"]
         # Update the period_started in the database
         update_period_started = request.form["period_start"]
         # Update cramps in the database
@@ -160,27 +158,29 @@ def day_details():
         update_acne = request.form["acne"]
         # Update fatigue in the database
         update_fatigue = request.form["fatigue"]
-        conn.execute(
+        engine.execute(
             f"UPDATE {month}_{year} SET  period_started= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
-            " WHERE id = ?",
+            " WHERE day = ?",
             (
                 update_period_started,
                 update_cramps,
                 update_headache,
                 update_acne,
                 update_fatigue,
-                day_details,
+                day_of_month,
             ),
         )
         # Commit the update to the database
-        conn.commit()
+        # conn.commit()
+        # conn.close()
         # Bring back the homepage
         return redirect(url_for("home"))
-    # Get the day from the New_Table table with the chosen id
-    selected_day = conn.execute(f"SELECT day FROM {month}_{year}").fetchone()
-    print(selected_day)
-    conn.close()
-    return render_template("day_details.html", day=selected_day)
+    # Get the day from the table table with the chosen id
+    selected_day = engine.execute(
+        f"SELECT day FROM {month}_{year} WHERE day = ?",
+        (day_of_month,),
+    ).fetchone()
+    return render_template("day_details.html", day=selected_day, month=month, year=year)
 
 
 if __name__ == "__main__":
