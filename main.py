@@ -1,13 +1,11 @@
-from turtle import clearstamps
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from datetime import date, datetime
-from calendar import monthrange
+from datetime import datetime
+from calendar import monthrange, weekday
 from requests import get
-import time
 import sqlite3
 
-from sqlalchemy import table, true, insert, create_engine, MetaData
+from sqlalchemy import create_engine, MetaData
 
 # ------------------------------- Datetime Variables --------------------------------------#
 list_of_months = [
@@ -38,7 +36,7 @@ current_month_name = current_date.strftime("%B")
 # Current date in the month as an int
 date_of_month = int(current_date.strftime("%d"))
 # Current day of week
-weekday = current_date.strftime("%A")
+# weekday = current_date.strftime("%A")
 # Number of days in current month
 days_in_month = monthrange(year=current_year, month=current_month)[1]
 # Weekday that the first of the current month is on
@@ -48,7 +46,12 @@ dict_number_of_days_in_each_month = {
     month: monthrange(year=current_year, month=(list_of_months.index(month) + 1))[1]
     for month in list_of_months
 }
-# print(dict_number_of_days_in_each_month)
+# Number weekday (Mon=0) that the first of the month falls on for each month in the given year
+dict_1st_weekday_in_month = {
+    month: weekday(year=current_year, month=(list_of_months.index(month) + 1), day=1)
+    for month in list_of_months
+}
+
 # ----------------------------------------------------------------------------------------#
 app = Flask(__name__)
 engine = create_engine("sqlite:///period_tracking_app.db")
@@ -67,24 +70,25 @@ def create_new_month_table(
 ):
     """For the table_name given, create a new table with the following columns."""
     engine.execute(
-        f"CREATE TABLE {table_name} (day Integer, day_of_week String, period_started String, cramps String, headache String, fatigue String, acne String)"
+        f"CREATE TABLE {table_name} (day Integer, period_started String, cramps String, headache String, fatigue String, acne String)"
     )
 
 
 def add_days_to_month_table(month, table_name):
     """Get the number of days in the month given and then for each day, add a row with the following column info into the table_name given inthe database."""
     num_days_in_month = dict_number_of_days_in_each_month.get(month)
+    # weekday = dict_1st_weekday_in_month.get(month)
     for day in range(1, num_days_in_month + 1):
         table_name = table_name
         day = day
-        day_of_week = weekday
+        # day_of_week = weekday
         period_started = "No"
         cramps = "No"
         headache = "No"
         fatigue = "No"
         acne = "No"
         engine.execute(
-            f"INSERT INTO {table_name} (day, day_of_week, period_started, cramps, headache, fatigue, acne) VALUES ('{day}', '{day_of_week}', '{period_started}', '{cramps}', '{headache}', '{fatigue}', '{acne}');"
+            f"INSERT INTO {table_name} (day, period_started, cramps, headache, fatigue, acne) VALUES ('{day}', '{period_started}', '{cramps}', '{headache}', '{fatigue}', '{acne}');"
         )
 
 
@@ -107,7 +111,7 @@ if current_month_and_year not in table_names:
         table_name = f"{month}_2022"
         # create a new table for the month
         create_new_month_table(table_name=table_name)
-
+        # add calendar days to the month table created above
         add_days_to_month_table(table_name=table_name, month=month)
 
 
@@ -120,6 +124,7 @@ def home():
 
 @app.route("/calendar")
 def calendar():
+    """View the calendar for the given month and year. Can click on specific days to edit details and navigate to other months."""
     # Get the name of the month from the url arg 'month'
     month_name = request.args.get("month")
     # Get the name of the year from the url arg 'year'
@@ -132,7 +137,7 @@ def calendar():
     return render_template(
         "calendar.html",
         days=month_days,
-        weekday=first_of_the_month_weekday,
+        weekday=dict_1st_weekday_in_month.get(month_name),
         month_and_year=month_and_year_name,
         year=year,
         month=month_name,

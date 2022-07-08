@@ -107,32 +107,32 @@ body {font-family: Verdana, sans-serif;}
     </ul>
     <ul class="days"> 
         <!-- list for days in the month. Depending on what day of the week the 1st is, add extra positions at the beginning -->
-        {% if weekday == "Monday": %}
+        {% if weekday == 0: %}
         <li></li>
         {% endif %}
-        {% if weekday == "Tuesday": %}
-        <li></li>
-        <li></li>
-        {% endif %}
-        {% if weekday == "Wednesday": %}
-        <li></li>
+        {% if weekday == 1: %}
         <li></li>
         <li></li>
         {% endif %}
-        {% if weekday == "Thursday": %}
-        <li></li>
+        {% if weekday == 2: %}
         <li></li>
         <li></li>
         <li></li>
         {% endif %}
-        {% if weekday == "Friday": %}
-        <li></li>
+        {% if weekday == 3: %}
         <li></li>
         <li></li>
         <li></li>
         <li></li>
         {% endif %}
-        {% if weekday == "Saturday": %}
+        {% if weekday == 4: %}
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        {% endif %}
+        {% if weekday == 5: %}
         <li></li>
         <li></li>
         <li></li>
