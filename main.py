@@ -56,6 +56,7 @@ metadata = MetaData(bind=engine)
 
 
 def get_db_connection():
+    """Get a connection to the database that can be used with the Flask app"""
     conn = sqlite3.connect("period_tracking_app.db")
     conn.row_factory = sqlite3.Row
     return conn
@@ -64,12 +65,14 @@ def get_db_connection():
 def create_new_month_table(
     table_name,
 ):
+    """For the table_name given, create a new table with the following columns."""
     engine.execute(
         f"CREATE TABLE {table_name} (day Integer, day_of_week String, period_started String, cramps String, headache String, fatigue String, acne String)"
     )
 
 
 def add_days_to_month_table(month, table_name):
+    """Get the number of days in the month given and then for each day, add a row with the following column info into the table_name given inthe database."""
     num_days_in_month = dict_number_of_days_in_each_month.get(month)
     for day in range(1, num_days_in_month + 1):
         table_name = table_name
@@ -140,12 +143,16 @@ def calendar():
 
 @app.route("/details", methods=["post", "get"])
 def day_details():
+    """Edit the details of a particular day on the calendar (i.e. period started, heachache, cramps, etc.) and commit the changes to the database."""
     day_of_month = request.args.get("date")
     month = request.args.get("month")
     year = request.args.get("year")
-    # conn = get_db_connection()
+    conn = get_db_connection()
     # Get the day from the url (after the /edit?)
     if request.method == "POST":
+        # Need to set 'day_of_month', 'month', and 'year' variables again but using the form,
+        #   otherwise it returns 'None' when trying to update the db
+        day_of_month = request.form["day"]
         month = request.form["month"]
         year = request.form["year"]
         # Update the period_started in the database
@@ -158,7 +165,7 @@ def day_details():
         update_acne = request.form["acne"]
         # Update fatigue in the database
         update_fatigue = request.form["fatigue"]
-        engine.execute(
+        conn.execute(
             f"UPDATE {month}_{year} SET  period_started= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
             " WHERE day = ?",
             (
@@ -171,12 +178,13 @@ def day_details():
             ),
         )
         # Commit the update to the database
-        # conn.commit()
-        # conn.close()
-        # Bring back the homepage
-        return redirect(url_for("home"))
-    # Get the day from the table table with the chosen id
-    selected_day = engine.execute(
+        conn.commit()
+        # Close the connection to the database
+        conn.close()
+        # Bring back the calendar for the same month and year
+        return redirect(url_for("calendar", month=month, year=year))
+    # Get the day from the table table with the given 'day_of_month'
+    selected_day = conn.execute(
         f"SELECT day FROM {month}_{year} WHERE day = ?",
         (day_of_month,),
     ).fetchone()
