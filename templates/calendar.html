@@ -82,14 +82,18 @@ body {font-family: Verdana, sans-serif;}
 <body>
     <div class="month">  
         <ul>
-            <!-- 'prev' class for back arrow button that links to the home page with last month's calendar-->
-            <li class="prev">
-                <a href="{{url_for('calendar', month=last_month, year=year)}}"> &#10094 </a>
-            </li>
-            <!-- 'next' class for forward arrow button that links to the home page with next month's calendar-->
-            <li class="next" >
-                <a href="{{url_for('calendar', month=next_month, year=year)}}"> &#10095 </a>
-            </li>
+            {% if last_month != None %}
+              <!-- 'prev' class for back arrow button that links to the home page with last month's calendar-->
+              <li class="prev">
+                  <a href="{{url_for('calendar', month=last_month, year=year)}}"> &#10094 </a>
+              </li>
+            {% endif %}
+            {% if next_month != None %}
+              <!-- 'next' class for forward arrow button that links to the home page with next month's calendar-->
+              <li class="next" >
+                  <a href="{{url_for('calendar', month=next_month, year=year)}}"> &#10095 </a>
+              </li>
+            {% endif %}
             <li>
                 {{ month_and_year }}
             </li>

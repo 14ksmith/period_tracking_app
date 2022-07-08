@@ -132,7 +132,16 @@ def calendar():
     month_and_year_name = f"{month_name} {year}"
     # Get all day entries in the month given
     month_days = get_table_from_database(tablename=f"{month_name}_{year}")
-
+    try:
+        # Get the name of the next month after the month currently viewing
+        next_month = list_of_months[list_of_months.index(month_name) + 1]
+    except IndexError:
+        next_month = None
+    try:
+        # Get the name of the previous month of the month currently viewing
+        previous_month = list_of_months[list_of_months.index(month_name) - 1]
+    except IndexError:
+        previous_month = None
     # Send user to the homepage by rendering "index.html" with the following parameters
     return render_template(
         "calendar.html",
@@ -141,8 +150,8 @@ def calendar():
         month_and_year=month_and_year_name,
         year=year,
         month=month_name,
-        next_month=list_of_months[list_of_months.index(month_name) + 1],
-        last_month=list_of_months[list_of_months.index(month_name) - 1],
+        next_month=next_month,
+        last_month=previous_month,
     )
 
 
