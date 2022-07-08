@@ -108,11 +108,14 @@ table_names = engine.table_names()
 # if there is not already a table in the db with current month and year, for each month in the year make a new table
 if current_month_and_year not in table_names:
     for month in list_of_months:
-        table_name = f"{month}_2022"
+        table_name = f"{month}_{current_year}"
         # create a new table for the month
         create_new_month_table(table_name=table_name)
         # add calendar days to the month table created above
         add_days_to_month_table(table_name=table_name, month=month)
+
+# TODO: Create if statement that checks if, given the current month, there are tables for the next six months as well
+#           If there are not, then create whatever tables are missing.
 
 
 @app.route("/")
@@ -136,7 +139,7 @@ def calendar():
         # Get the name of the next month after the month currently viewing
         next_month = list_of_months[list_of_months.index(month_name) + 1]
     except IndexError:
-        next_month = None
+        next_month = list_of_months[0]
     try:
         # Get the name of the previous month of the month currently viewing
         previous_month = list_of_months[list_of_months.index(month_name) - 1]
@@ -149,6 +152,7 @@ def calendar():
         weekday=dict_1st_weekday_in_month.get(month_name),
         month_and_year=month_and_year_name,
         year=year,
+        current_month=current_month_name,
         month=month_name,
         next_month=next_month,
         last_month=previous_month,
