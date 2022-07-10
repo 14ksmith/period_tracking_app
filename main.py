@@ -4,6 +4,7 @@ from datetime import datetime
 from calendar import monthrange, weekday
 from requests import get
 import sqlite3
+import statistics
 
 from sqlalchemy import create_engine, MetaData
 
@@ -77,11 +78,9 @@ def create_new_month_table(
 def add_days_to_month_table(month, table_name):
     """Get the number of days in the month given and then for each day, add a row with the following column info into the table_name given inthe database."""
     num_days_in_month = dict_number_of_days_in_each_month.get(month)
-    # weekday = dict_1st_weekday_in_month.get(month)
     for day in range(1, num_days_in_month + 1):
         table_name = table_name
         day = day
-        # day_of_week = weekday
         period_started = "No"
         cramps = "No"
         headache = "No"
@@ -100,22 +99,57 @@ def get_table_from_database(tablename):
     return month_days
 
 
+def average_time_between_menstruation():
+    time_between_menstruation = []
+    for table in table_names:
+        conn = get_db_connection()
+        prev_month_post_period_days = conn.execute(
+            f"SELECT day FROM {table - 1} WHERE period_started = ?",
+            ("Yes",),
+        ).fetchall()
+        pre_period = conn.execute(
+            f"SELECT day FROM {table} WHERE period_started = ?",
+            ("Yes",),
+        ).fetchall()
+        conn.close()
+
+
+def average_menstruation_length():
+    """Select all the days where period_started equals 'Yes' for each month table in the database, and return an average length of menstruation."""
+    menstruation_length = []
+    for table in table_names:
+        conn = get_db_connection()
+        period_days = conn.execute(
+            f"SELECT period_started FROM {table} WHERE period_started = ?",
+            ("Yes",),
+        ).fetchall()
+        conn.close()
+        num_period_days = len(period_days)
+        if num_period_days > 0:
+            menstruation_length.append(num_period_days)
+    return statistics.mean(menstruation_length)
+
+
 # -----------------------------------------------------------------------------------------------------------------------------#
 
 # List of table names in the database
 table_names = engine.table_names()
 
 # if there is not already a table in the db with current month and year, for each month in the year make a new table
-if current_month_and_year not in table_names:
+if len(table_names) == 0:
+    i = 1
     for month in list_of_months:
-        table_name = f"{month}_{current_year}"
+        table_name = f"month_{i}_{month}_{current_year}"
         # create a new table for the month
         create_new_month_table(table_name=table_name)
         # add calendar days to the month table created above
         add_days_to_month_table(table_name=table_name, month=month)
+        i += 1
 
 # TODO: Create if statement that checks if, given the current month, there are tables for the next six months as well
 #           If there are not, then create whatever tables are missing.
+
+print(average_menstruation_length())
 
 
 @app.route("/")
@@ -134,7 +168,9 @@ def calendar():
     year = request.args.get("year")
     month_and_year_name = f"{month_name} {year}"
     # Get all day entries in the month given
-    month_days = get_table_from_database(tablename=f"{month_name}_{year}")
+    month_days = get_table_from_database(
+        tablename=f"month_{(list_of_months.index(month_name)) + 1}_{month_name}_{year}"
+    )
     try:
         # Get the name of the next month after the month currently viewing
         next_month = list_of_months[list_of_months.index(month_name) + 1]
@@ -184,7 +220,7 @@ def day_details():
         # Update fatigue in the database
         update_fatigue = request.form["fatigue"]
         conn.execute(
-            f"UPDATE {month}_{year} SET  period_started= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
+            f"UPDATE month_{(list_of_months.index(month)) + 1}_{month}_{year} SET  period_started= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
             " WHERE day = ?",
             (
                 update_period_started,
@@ -203,7 +239,7 @@ def day_details():
         return redirect(url_for("calendar", month=month, year=year))
     # Get the day from the table table with the given 'day_of_month'
     selected_day = conn.execute(
-        f"SELECT day FROM {month}_{year} WHERE day = ?",
+        f"SELECT day FROM month_{(list_of_months.index(month)) + 1}_{month}_{year} WHERE day = ?",
         (day_of_month,),
     ).fetchone()
     return render_template("day_details.html", day=selected_day, month=month, year=year)
