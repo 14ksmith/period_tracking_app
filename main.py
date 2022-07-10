@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, date
 from calendar import monthrange, weekday
 from requests import get
 import sqlite3
@@ -102,12 +102,16 @@ def get_table_from_database(tablename):
 
 
 def get_period_start_days():
+    """Get all dates from given table where period_started equals "Yes", turn into datetime object, and add to all_period_start_days list. Return the list."""
     all_period_start_days = []
     for table in table_names:
+        # Get dates from given tablename that have period_started = "Yes"
         period_start_days = engine.execute(
             f"SELECT date FROM {table} WHERE period_started = ?",
             ("Yes",),
         ).fetchall()
+        # For each index in 0 to len(period_start_days), append all_period_start_days with first index in period_start_days[index]
+        #       and turn it into a datetime object
         for i in range(0, len(period_start_days)):
             all_period_start_days.append(
                 datetime.strptime((period_start_days[i][0]), "%Y/%m/%d")
@@ -116,12 +120,16 @@ def get_period_start_days():
 
 
 def get_period_end_days():
+    """Get all dates from given table where period_ended equals "Yes", turn into datetime object, and add to all_period_end_days list. Return the list."""
     all_period_end_days = []
     for table in table_names:
+        # Get dates from given tablename that have period_ended = "Yes"
         period_end_days = engine.execute(
             f"SELECT date FROM {table} WHERE period_ended = ?",
             ("Yes",),
         ).fetchall()
+        # For each index in 0 to len(period_ended_days), append all_period_end_days with first index in period_end_days[index]
+        #       and turn it into a datetime object
         for i in range(0, len(period_end_days)):
             all_period_end_days.append(
                 datetime.strptime((period_end_days[i][0]), "%Y/%m/%d")
@@ -129,22 +137,25 @@ def get_period_end_days():
     return all_period_end_days
 
 
-def average_time_between_menstruation():
-    time_between_menstruation = []
-    conn = get_db_connection()
-    for table in table_names:
-        # if period_started > 1:
-        # take time between period_ended and second period_started
-        # else:
-        prev_month_post_period_days = conn.execute(
-            f"SELECT day FROM {table - 1} WHERE period_ended = ?",
-            ("Yes",),
-        ).fetchall()
-        pre_period = conn.execute(
-            f"SELECT day FROM {table} WHERE period_started = ?",
-            ("Yes",),
-        ).fetchall()
-        conn.close()
+def average_time_between_periods(period_start_days, period_end_days):
+    """Get the average time between periods, return the average."""
+    list_time_between_periods = []
+    # for each index number in a range of 0, len(period_start_day) - 1:
+    for i in range(0, len(period_start_days) - 1):
+        # set period_end_day to item at index i in period_end_days list
+        period_end_day = period_end_days[i]
+        # set next_period_start_day to the iten at index i+1 in period_start_days list
+        next_period_start_day = period_start_days[i + 1]
+        # Get the time between periods by subtracting the period_end_day from the next_period_start_day
+        time_between_period = int((next_period_start_day - period_end_day).days)
+        # # add the day difference between periods and add it to the current average_time_between_periods
+        # average_time_between_periods += time_between_period
+        # # if current index is not 0, divide the current average_time_between_periods by 2
+        # # if i > 0:
+        # average_time_between_periods /= 2
+        list_time_between_periods.append(time_between_period)
+        average_time_between_periods = statistics.mean(list_time_between_periods)
+    return average_time_between_periods
 
 
 def average_menstruation_length():
@@ -190,6 +201,12 @@ if len(table_names) == 0:
 
 period_start_days = get_period_start_days()
 period_end_days = get_period_end_days()
+
+time_between_periods = average_time_between_periods(
+    period_start_days=period_start_days, period_end_days=period_end_days
+)
+
+print(time_between_periods)
 
 
 @app.route("/")
