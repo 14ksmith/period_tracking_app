@@ -71,23 +71,25 @@ def create_new_month_table(
 ):
     """For the table_name given, create a new table with the following columns."""
     engine.execute(
-        f"CREATE TABLE {table_name} (day Integer, period_started String, cramps String, headache String, fatigue String, acne String)"
+        f"CREATE TABLE {table_name} (id Integer, date String, period_started String, period_ended String, cramps String, headache String, fatigue String, acne String)"
     )
 
 
-def add_days_to_month_table(month, table_name):
+def add_days_to_month_table(table_name, month_name, month_number, year):
     """Get the number of days in the month given and then for each day, add a row with the following column info into the table_name given inthe database."""
-    num_days_in_month = dict_number_of_days_in_each_month.get(month)
+    num_days_in_month = dict_number_of_days_in_each_month.get(month_name)
     for day in range(1, num_days_in_month + 1):
         table_name = table_name
-        day = day
+        id = day
+        date = f"{year}/{month_number}/{day}"
         period_started = "No"
+        period_ended = "No"
         cramps = "No"
         headache = "No"
         fatigue = "No"
         acne = "No"
         engine.execute(
-            f"INSERT INTO {table_name} (day, period_started, cramps, headache, fatigue, acne) VALUES ('{day}', '{period_started}', '{cramps}', '{headache}', '{fatigue}', '{acne}');"
+            f"INSERT INTO {table_name} (id, date, period_started, period_ended, cramps, headache, fatigue, acne) VALUES ('{id}','{date}', '{period_started}', '{period_ended}','{cramps}', '{headache}', '{fatigue}', '{acne}');"
         )
 
 
@@ -99,12 +101,43 @@ def get_table_from_database(tablename):
     return month_days
 
 
+def get_period_start_days():
+    all_period_start_days = []
+    for table in table_names:
+        period_start_days = engine.execute(
+            f"SELECT date FROM {table} WHERE period_started = ?",
+            ("Yes",),
+        ).fetchall()
+        for i in range(0, len(period_start_days)):
+            all_period_start_days.append(
+                datetime.strptime((period_start_days[i][0]), "%Y/%m/%d")
+            )
+    return all_period_start_days
+
+
+def get_period_end_days():
+    all_period_end_days = []
+    for table in table_names:
+        period_end_days = engine.execute(
+            f"SELECT date FROM {table} WHERE period_ended = ?",
+            ("Yes",),
+        ).fetchall()
+        for i in range(0, len(period_end_days)):
+            all_period_end_days.append(
+                datetime.strptime((period_end_days[i][0]), "%Y/%m/%d")
+            )
+    return all_period_end_days
+
+
 def average_time_between_menstruation():
     time_between_menstruation = []
+    conn = get_db_connection()
     for table in table_names:
-        conn = get_db_connection()
+        # if period_started > 1:
+        # take time between period_ended and second period_started
+        # else:
         prev_month_post_period_days = conn.execute(
-            f"SELECT day FROM {table - 1} WHERE period_started = ?",
+            f"SELECT day FROM {table - 1} WHERE period_ended = ?",
             ("Yes",),
         ).fetchall()
         pre_period = conn.execute(
@@ -140,16 +173,23 @@ if len(table_names) == 0:
     i = 1
     for month in list_of_months:
         table_name = f"month_{i}_{month}_{current_year}"
+        month_number = list_of_months.index(month) + 1
         # create a new table for the month
         create_new_month_table(table_name=table_name)
         # add calendar days to the month table created above
-        add_days_to_month_table(table_name=table_name, month=month)
+        add_days_to_month_table(
+            table_name=table_name,
+            month_name=month,
+            month_number=month_number,
+            year=current_year,
+        )
         i += 1
 
 # TODO: Create if statement that checks if, given the current month, there are tables for the next six months as well
 #           If there are not, then create whatever tables are missing.
 
-print(average_menstruation_length())
+period_start_days = get_period_start_days()
+period_end_days = get_period_end_days()
 
 
 @app.route("/")
@@ -198,11 +238,8 @@ def calendar():
 @app.route("/details", methods=["post", "get"])
 def day_details():
     """Edit the details of a particular day on the calendar (i.e. period started, heachache, cramps, etc.) and commit the changes to the database."""
-    day_of_month = request.args.get("date")
-    month = request.args.get("month")
-    year = request.args.get("year")
+    # establish connection to the database
     conn = get_db_connection()
-    # Get the day from the url (after the /edit?)
     if request.method == "POST":
         # Need to set 'day_of_month', 'month', and 'year' variables again but using the form,
         #   otherwise it returns 'None' when trying to update the db
@@ -211,6 +248,8 @@ def day_details():
         year = request.form["year"]
         # Update the period_started in the database
         update_period_started = request.form["period_start"]
+        # Update the period_ended in the database
+        update_period_ended = request.form["period_ended"]
         # Update cramps in the database
         update_cramps = request.form["cramps"]
         # Update headache in the database
@@ -220,10 +259,11 @@ def day_details():
         # Update fatigue in the database
         update_fatigue = request.form["fatigue"]
         conn.execute(
-            f"UPDATE month_{(list_of_months.index(month)) + 1}_{month}_{year} SET  period_started= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
-            " WHERE day = ?",
+            f"UPDATE month_{(list_of_months.index(month)) + 1}_{month}_{year} SET  period_started= ?, period_ended= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
+            " WHERE id = ?",
             (
                 update_period_started,
+                update_period_ended,
                 update_cramps,
                 update_headache,
                 update_acne,
@@ -237,9 +277,15 @@ def day_details():
         conn.close()
         # Bring back the calendar for the same month and year
         return redirect(url_for("calendar", month=month, year=year))
-    # Get the day from the table table with the given 'day_of_month'
+    # Get the day/month/year from the url (after the /edit?)
+    day_of_month = request.args.get("date")
+    month = request.args.get("month")
+    year = request.args.get("year")
+    # Create 'table_name' variable using index of 'month' from list of months, 'month', and 'year'
+    table_name = f"month_{(list_of_months.index(month)) + 1}_{month}_{year}"
+    # Select the day from the table with the given 'day_of_month'
     selected_day = conn.execute(
-        f"SELECT day FROM month_{(list_of_months.index(month)) + 1}_{month}_{year} WHERE day = ?",
+        f"SELECT * FROM {table_name} WHERE id = ?",
         (day_of_month,),
     ).fetchone()
     return render_template("day_details.html", day=selected_day, month=month, year=year)

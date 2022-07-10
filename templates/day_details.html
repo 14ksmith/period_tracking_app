@@ -11,8 +11,14 @@
     <!--Maybe using the 'selected' attribute??-->
     <form action="{{ url_for('day_details') }}" method="POST">
         <!-- Allow user to edit period_started, period_ended, and symptoms. Then save changes to the database-->
-        <label>Are you on your period? {{ day['period_started'] }}</label>
+        <label>Has your period started? {{ day['period_started'] }}</label>
         <select name="period_start">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+        </select>
+        <br><br>
+        <label>Has your period ended? {{ day['period_ended'] }}</label>
+        <select name="period_ended">
             <option value="No">No</option>
             <option value="Yes">Yes</option>
         </select>
@@ -42,7 +48,7 @@
         </select>
         <br><br>
         <!--Include the lines below so that when submitting, can draw the day, month, and year for the specific day from the form so the db can be updated-->
-        <input hidden="hidden" name="day" value="{{ day['day'] }}">
+        <input hidden="hidden" name="day" value="{{ day['id'] }}">
         <input hidden="hidden" name="month" value="{{ month }}">
         <input hidden="hidden" name="year" value="{{ year }}">
         <!--Button that saves the changes to the database-->
