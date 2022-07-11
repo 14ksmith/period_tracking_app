@@ -171,31 +171,74 @@ def average_menstruation_length(period_start_days, period_end_days):
     return average_length_of_periods
 
 
+# def predict_period_start_days(
+#     last_period_end_day, avg_time_between_periods, avg_menstruation_length
+# ):
+#     """Return a list of predicted future period start dates given the average number of days period lasts and days between periods."""
+#     # Make new list of future period start dates
+#     future_period_start_dates = []
+#     # for each index in a range of 12:
+#     for i in range(0, 12):
+#         if len(future_period_start_dates) == 0:
+#             # find the next period start date by taking the last_period_end_day and adding the days between periods
+#             next_period_start = last_period_end_day + timedelta(
+#                 days=avg_time_between_periods
+#             )
+#             # add this new datetime to the list of future period start days
+#             future_period_start_dates.append(next_period_start)
+#         else:
+#             # Get the next period start date by obtaining the last future_period_start_date then using timedelta to add
+#             #       the average period length minus 1 (because you include the last future start date in the period length)
+#             #       plus the average time bewteen periods.
+#             next_period_start = future_period_start_dates[-1] + timedelta(
+#                 days=((avg_menstruation_length - 1) + avg_time_between_periods)
+#             )
+#             # add this new datetime to the list of future period start days
+#             future_period_start_dates.append(next_period_start)
+#     print(f"Future period start dates: {future_period_start_dates}")
+#     return future_period_start_dates
+
+
 def predict_period_start_days(
     last_period_end_day, avg_time_between_periods, avg_menstruation_length
 ):
+    """Return a list of predicted future period dates given the average number of days period lasts and days between periods."""
+
     # Make new list of future period start dates
-    future_period_start_dates = []
-    # for each index in a range of 12:
-    for i in range(0, 12):
-        if len(future_period_start_dates) == 0:
+    future_period_dates = []
+
+    # for each index in a range of 6 (this will predict 6 future menstrual cycles)
+    for i in range(0, 6):
+
+        if len(future_period_dates) == 0:
             # find the next period start date by taking the last_period_end_day and adding the days between periods
             next_period_start = last_period_end_day + timedelta(
                 days=avg_time_between_periods
             )
             # add this new datetime to the list of future period start days
-            future_period_start_dates.append(next_period_start)
+            future_period_dates.append(next_period_start)
+
+            # Add another day to the future_period_dates for each expected day in avg_menstruation_length
+            for i in range(1, avg_menstruation_length):
+                next_period_date = next_period_start + timedelta(days=i)
+                future_period_dates.append(next_period_date)
+
         else:
-            # Get the next period start date by obtaining the last future_period_start_date then using timedelta to add
-            #       the average period length minus 1 (because you include the last future start date in the period length)
-            #       plus the average time bewteen periods.
-            next_period_start = future_period_start_dates[-1] + timedelta(
-                days=((avg_menstruation_length - 1) + avg_time_between_periods)
+            # Get the next period start date by obtaining the last future_period_date then using timedelta to add
+            #       the average period length plus 1 (because it avg_time_between_periods is from last end to start,
+            #       and this is from last period day to start, so we need to add one more day to the timedelta).
+            next_period_start = future_period_dates[-1] + timedelta(
+                days=(avg_time_between_periods + 1)
             )
             # add this new datetime to the list of future period start days
-            future_period_start_dates.append(next_period_start)
-    print(f"Future period start dates: {future_period_start_dates}")
-    return future_period_start_dates
+            future_period_dates.append(next_period_start)
+
+            # Add another day to the future_period_dates for each expected day in avg_menstruation_length
+            for i in range(1, avg_menstruation_length):
+                next_period_date = next_period_start + timedelta(days=i)
+                future_period_dates.append(next_period_date)
+
+    return future_period_dates
 
 
 # -----------------------------------------------------------------------------------------------------------------------------#
@@ -230,17 +273,17 @@ if len(table_names) == 0:
 period_start_days = get_period_start_days()
 
 period_end_days = get_period_end_days()
-print(period_end_days)
+print(f"period end days: {period_end_days}")
 
 avg_time_between_periods = average_time_between_periods(
     period_start_days=period_start_days, period_end_days=period_end_days
 )
-print(f"Average time between periods: {avg_time_between_periods} days.")
+# print(f"Average time between periods: {avg_time_between_periods} days.")
 
 avg_menstruation_length = average_menstruation_length(
     period_start_days=period_start_days, period_end_days=period_end_days
 )
-print(f"Average menstruation length: {avg_menstruation_length} days.")
+# print(f"Average menstruation length: {avg_menstruation_length} days.")
 
 
 predict_period_start_days(
