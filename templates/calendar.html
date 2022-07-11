@@ -162,11 +162,20 @@ body {font-family: Verdana, sans-serif;}
             <!-- Add a link to the url for edit_day, and add the id of the selected day to the end of the url (ex: /edit?id=1)-->
             <!-- The link is followed by clicking on each number day in the calendar-->
             <a href="{{ url_for('day_details', month=month, date=day['id'], year=year) }}">{{ day["id"] }}</a>
+            <!-- If the 'period_started' column for the given day is equal to 'Yes', add the 🩸 emoji -->
             {% if day['period_started'] == 'Yes': %}
               <a>🩸</a>
             {% endif %}
+            <!-- If the 'period_ended' column for the given day is equal to 'Yes', add the 🎉 emoji -->
             {% if day['period_ended'] == 'Yes': %}
               <a>🎉</a>
+            {% endif %}
+            <!-- If the predicted_period_days is equal to the list and not None...-->
+            {% if predicted_period_days != 'None': %}
+              <!-- If the 'date' column for the given day is in the predicted_period_days list, add the 🔘 emoji -->
+              {% if day["date"] in predicted_period_days: %}
+                <a>🔘</a>
+              {% endif %}
             {% endif %}
         </li>
         {% endfor %}

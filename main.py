@@ -1,3 +1,4 @@
+from turtle import st
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date, timedelta
@@ -79,7 +80,8 @@ def add_days_to_month_table(table_name, month_name, month_number, year):
     for day in range(1, num_days_in_month + 1):
         table_name = table_name
         id = day
-        date = f"{year}/{month_number}/{day}"
+        # Want to include leading zero for any month or day below 10, which is what "str().rjust(2, '0')" is for
+        date = f"{year}-{str(month_number).rjust(2, '0')}-{str(day).rjust(2, '0')}"
         period_started = "No"
         period_ended = "No"
         cramps = "No"
@@ -112,7 +114,7 @@ def get_period_start_days():
         #       and turn it into a datetime object
         for i in range(0, len(period_start_days)):
             all_period_start_days.append(
-                datetime.strptime((period_start_days[i][0]), "%Y/%m/%d")
+                datetime.strptime((period_start_days[i][0]), "%Y-%m-%d")
             )
     return all_period_start_days
 
@@ -130,7 +132,7 @@ def get_period_end_days():
         #       and turn it into a datetime object
         for i in range(0, len(period_end_days)):
             all_period_end_days.append(
-                datetime.strptime((period_end_days[i][0]), "%Y/%m/%d")
+                datetime.strptime((period_end_days[i][0]), "%Y-%m-%d")
             )
     return all_period_end_days
 
@@ -148,8 +150,8 @@ def average_time_between_periods(period_start_days, period_end_days):
         time_between_period = (next_period_start_day - period_end_day).days
         # add the day difference between periods and add it to the current average_time_between_periods
         time_between_periods_list.append(time_between_period)
-    print(f"Time between periods list: {time_between_periods_list}")
     average_time_between_periods = round(statistics.mean(time_between_periods_list))
+    print(average_time_between_periods)
     return average_time_between_periods
 
 
@@ -168,42 +170,14 @@ def average_menstruation_length(period_start_days, period_end_days):
         length_of_periods_list.append(length_of_period)
     # get the average from numbers in the list
     average_length_of_periods = round(statistics.mean(length_of_periods_list))
+    print(average_length_of_periods)
     return average_length_of_periods
 
 
-# def predict_period_start_days(
-#     last_period_end_day, avg_time_between_periods, avg_menstruation_length
-# ):
-#     """Return a list of predicted future period start dates given the average number of days period lasts and days between periods."""
-#     # Make new list of future period start dates
-#     future_period_start_dates = []
-#     # for each index in a range of 12:
-#     for i in range(0, 12):
-#         if len(future_period_start_dates) == 0:
-#             # find the next period start date by taking the last_period_end_day and adding the days between periods
-#             next_period_start = last_period_end_day + timedelta(
-#                 days=avg_time_between_periods
-#             )
-#             # add this new datetime to the list of future period start days
-#             future_period_start_dates.append(next_period_start)
-#         else:
-#             # Get the next period start date by obtaining the last future_period_start_date then using timedelta to add
-#             #       the average period length minus 1 (because you include the last future start date in the period length)
-#             #       plus the average time bewteen periods.
-#             next_period_start = future_period_start_dates[-1] + timedelta(
-#                 days=((avg_menstruation_length - 1) + avg_time_between_periods)
-#             )
-#             # add this new datetime to the list of future period start days
-#             future_period_start_dates.append(next_period_start)
-#     print(f"Future period start dates: {future_period_start_dates}")
-#     return future_period_start_dates
-
-
-def predict_period_start_days(
+def predict_future_period_days(
     last_period_end_day, avg_time_between_periods, avg_menstruation_length
 ):
     """Return a list of predicted future period dates given the average number of days period lasts and days between periods."""
-
     # Make new list of future period start dates
     future_period_dates = []
 
@@ -222,7 +196,6 @@ def predict_period_start_days(
             for i in range(1, avg_menstruation_length):
                 next_period_date = next_period_start + timedelta(days=i)
                 future_period_dates.append(next_period_date)
-
         else:
             # Get the next period start date by obtaining the last future_period_date then using timedelta to add
             #       the average period length plus 1 (because it avg_time_between_periods is from last end to start,
@@ -237,7 +210,9 @@ def predict_period_start_days(
             for i in range(1, avg_menstruation_length):
                 next_period_date = next_period_start + timedelta(days=i)
                 future_period_dates.append(next_period_date)
-
+    for i in range(0, len(future_period_dates)):
+        string_date = str(future_period_dates[i]).split()[0]
+        future_period_dates[i] = string_date
     return future_period_dates
 
 
@@ -251,8 +226,9 @@ if len(table_names) == 0:
     # Month table index
     i = 1
     for month in list_of_months:
-        # Have to include a month table index or the tables will be ordered alphabetically, but I need them ordered by month/year
-        table_name = f"month_{i}_{month}_{current_year}"
+        # Have to include a month table index or the tables will be ordered alphabetically, but I need them ordered by month/yea
+        #   Also want to include leading zero for any month below 10, which is what "str(i).rjust(2, '0')" is for
+        table_name = f"month_{str(i).rjust(2, '0')}_{month}_{current_year}"
         # Get the month number from the list_of_months + 1
         month_number = list_of_months.index(month) + 1
         # create a new table for the month
@@ -270,27 +246,28 @@ if len(table_names) == 0:
 # TODO: Create if statement that checks if, given the current month, there are tables for the next six months as well
 #           If there are not, then create whatever tables are missing.
 
+
 period_start_days = get_period_start_days()
 
 period_end_days = get_period_end_days()
-print(f"period end days: {period_end_days}")
-
-avg_time_between_periods = average_time_between_periods(
-    period_start_days=period_start_days, period_end_days=period_end_days
-)
-# print(f"Average time between periods: {avg_time_between_periods} days.")
-
-avg_menstruation_length = average_menstruation_length(
-    period_start_days=period_start_days, period_end_days=period_end_days
-)
-# print(f"Average menstruation length: {avg_menstruation_length} days.")
 
 
-predict_period_start_days(
-    last_period_end_day=period_end_days[-1],
-    avg_time_between_periods=avg_time_between_periods,
-    avg_menstruation_length=avg_menstruation_length,
-)
+try:
+    avg_time_between_periods = average_time_between_periods(
+        period_start_days=period_start_days, period_end_days=period_end_days
+    )
+
+    avg_menstruation_length = average_menstruation_length(
+        period_start_days=period_start_days, period_end_days=period_end_days
+    )
+
+    predicted_period_days = predict_future_period_days(
+        last_period_end_day=period_end_days[-1],
+        avg_time_between_periods=avg_time_between_periods,
+        avg_menstruation_length=avg_menstruation_length,
+    )
+except:
+    pass
 
 
 @app.route("/")
@@ -310,21 +287,33 @@ def calendar():
     month_and_year_name = f"{month_name} {year}"
     # Get all day entries in the month given
     month_days = get_table_from_database(
-        tablename=f"month_{(list_of_months.index(month_name)) + 1}_{month_name}_{year}"
+        tablename=f"month_{str((list_of_months.index(month_name)) + 1).rjust(2, '0')}_{month_name}_{year}"
     )
     try:
         # Get the name of the next month after the month currently viewing
         next_month = list_of_months[list_of_months.index(month_name) + 1]
     except IndexError:
+        # if returns index error, means it is the last table, so just send back to the first table month (January)
         next_month = list_of_months[0]
+
     try:
         # Get the name of the previous month of the month currently viewing
         previous_month = list_of_months[list_of_months.index(month_name) - 1]
     except IndexError:
+        # if returns an index error, means it is the first table, so set previous_month to None
         previous_month = None
+
+    try:
+        # set predicted_period_days to predicted_period_days
+        predicted_days_of_period = predicted_period_days
+    except NameError:
+        # if gives a NameError, means there are no predicted days yet, so set predicted_period_days to None
+        predicted_days_of_period = None
+
     # Send user to the homepage by rendering "index.html" with the following parameters
     return render_template(
         "calendar.html",
+        predicted_period_days=predicted_days_of_period,
         days=month_days,
         weekday=dict_1st_weekday_in_month.get(month_name),
         month_and_year=month_and_year_name,
@@ -360,7 +349,7 @@ def day_details():
         # Update fatigue in the database
         update_fatigue = request.form["fatigue"]
         conn.execute(
-            f"UPDATE month_{(list_of_months.index(month)) + 1}_{month}_{year} SET  period_started= ?, period_ended= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
+            f"UPDATE month_{str((list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year} SET  period_started= ?, period_ended= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
             " WHERE id = ?",
             (
                 update_period_started,
@@ -383,7 +372,9 @@ def day_details():
     month = request.args.get("month")
     year = request.args.get("year")
     # Create 'table_name' variable using index of 'month' from list of months, 'month', and 'year'
-    table_name = f"month_{(list_of_months.index(month)) + 1}_{month}_{year}"
+    table_name = (
+        f"month_{str((list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year}"
+    )
     # Select the day from the table with the given 'day_of_month'
     selected_day = conn.execute(
         f"SELECT * FROM {table_name} WHERE id = ?",
