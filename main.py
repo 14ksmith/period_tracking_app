@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from calendar import monthrange, weekday
 from requests import get
 import sqlite3
@@ -36,8 +36,6 @@ current_month = int(current_date.strftime("%m"))
 current_month_name = current_date.strftime("%B")
 # Current date in the month as an int
 date_of_month = int(current_date.strftime("%d"))
-# Current day of week
-# weekday = current_date.strftime("%A")
 # Number of days in current month
 days_in_month = monthrange(year=current_year, month=current_month)[1]
 # Weekday that the first of the current month is on
@@ -139,7 +137,7 @@ def get_period_end_days():
 
 def average_time_between_periods(period_start_days, period_end_days):
     """Get the average time between periods, return the average."""
-    list_time_between_periods = []
+    time_between_periods_list = []
     # for each index number in a range of 0, len(period_start_day) - 1:
     for i in range(0, len(period_start_days) - 1):
         # set period_end_day to item at index i in period_end_days list
@@ -147,31 +145,57 @@ def average_time_between_periods(period_start_days, period_end_days):
         # set next_period_start_day to the iten at index i+1 in period_start_days list
         next_period_start_day = period_start_days[i + 1]
         # Get the time between periods by subtracting the period_end_day from the next_period_start_day
-        time_between_period = int((next_period_start_day - period_end_day).days)
-        # # add the day difference between periods and add it to the current average_time_between_periods
-        # average_time_between_periods += time_between_period
-        # # if current index is not 0, divide the current average_time_between_periods by 2
-        # # if i > 0:
-        # average_time_between_periods /= 2
-        list_time_between_periods.append(time_between_period)
-        average_time_between_periods = statistics.mean(list_time_between_periods)
+        time_between_period = (next_period_start_day - period_end_day).days
+        # add the day difference between periods and add it to the current average_time_between_periods
+        time_between_periods_list.append(time_between_period)
+    print(f"Time between periods list: {time_between_periods_list}")
+    average_time_between_periods = round(statistics.mean(time_between_periods_list))
     return average_time_between_periods
 
 
-def average_menstruation_length():
-    """Select all the days where period_started equals 'Yes' for each month table in the database, and return an average length of menstruation."""
-    menstruation_length = []
-    for table in table_names:
-        conn = get_db_connection()
-        period_days = conn.execute(
-            f"SELECT period_started FROM {table} WHERE period_started = ?",
-            ("Yes",),
-        ).fetchall()
-        conn.close()
-        num_period_days = len(period_days)
-        if num_period_days > 0:
-            menstruation_length.append(num_period_days)
-    return statistics.mean(menstruation_length)
+def average_menstruation_length(period_start_days, period_end_days):
+    """Get the average length of periods, return the average."""
+    length_of_periods_list = []
+    # for each index number in a range of 0, len(period_start_day) - 1:
+    for i in range(0, len(period_start_days) - 1):
+        # set the start_day to the item at index i of period_start_days
+        start_day = period_start_days[i]
+        # set the end_day to the item at index i of period_end_days
+        end_day = period_end_days[i]
+        # get the length of period by subrtracting start_day from end_day, then get the number of days difference and turn into an int.
+        length_of_period = (end_day - start_day).days
+        # add length_of_period to length_of_periods_list
+        length_of_periods_list.append(length_of_period)
+    # get the average from numbers in the list
+    average_length_of_periods = round(statistics.mean(length_of_periods_list))
+    return average_length_of_periods
+
+
+def predict_period_start_days(
+    last_period_end_day, avg_time_between_periods, avg_menstruation_length
+):
+    # Make new list of future period start dates
+    future_period_start_dates = []
+    # for each index in a range of 12:
+    for i in range(0, 12):
+        if len(future_period_start_dates) == 0:
+            # find the next period start date by taking the last_period_end_day and adding the days between periods
+            next_period_start = last_period_end_day + timedelta(
+                days=avg_time_between_periods
+            )
+            # add this new datetime to the list of future period start days
+            future_period_start_dates.append(next_period_start)
+        else:
+            # Get the next period start date by obtaining the last future_period_start_date then using timedelta to add
+            #       the average period length minus 1 (because you include the last future start date in the period length)
+            #       plus the average time bewteen periods.
+            next_period_start = future_period_start_dates[-1] + timedelta(
+                days=((avg_menstruation_length - 1) + avg_time_between_periods)
+            )
+            # add this new datetime to the list of future period start days
+            future_period_start_dates.append(next_period_start)
+    print(f"Future period start dates: {future_period_start_dates}")
+    return future_period_start_dates
 
 
 # -----------------------------------------------------------------------------------------------------------------------------#
@@ -181,9 +205,12 @@ table_names = engine.table_names()
 
 # if there is not already a table in the db with current month and year, for each month in the year make a new table
 if len(table_names) == 0:
+    # Month table index
     i = 1
     for month in list_of_months:
+        # Have to include a month table index or the tables will be ordered alphabetically, but I need them ordered by month/year
         table_name = f"month_{i}_{month}_{current_year}"
+        # Get the month number from the list_of_months + 1
         month_number = list_of_months.index(month) + 1
         # create a new table for the month
         create_new_month_table(table_name=table_name)
@@ -194,19 +221,33 @@ if len(table_names) == 0:
             month_number=month_number,
             year=current_year,
         )
+        # Increase month table index by 1
         i += 1
 
 # TODO: Create if statement that checks if, given the current month, there are tables for the next six months as well
 #           If there are not, then create whatever tables are missing.
 
 period_start_days = get_period_start_days()
-period_end_days = get_period_end_days()
 
-time_between_periods = average_time_between_periods(
+period_end_days = get_period_end_days()
+print(period_end_days)
+
+avg_time_between_periods = average_time_between_periods(
     period_start_days=period_start_days, period_end_days=period_end_days
 )
+print(f"Average time between periods: {avg_time_between_periods} days.")
 
-print(time_between_periods)
+avg_menstruation_length = average_menstruation_length(
+    period_start_days=period_start_days, period_end_days=period_end_days
+)
+print(f"Average menstruation length: {avg_menstruation_length} days.")
+
+
+predict_period_start_days(
+    last_period_end_day=period_end_days[-1],
+    avg_time_between_periods=avg_time_between_periods,
+    avg_menstruation_length=avg_menstruation_length,
+)
 
 
 @app.route("/")

@@ -165,6 +165,9 @@ body {font-family: Verdana, sans-serif;}
             {% if day['period_started'] == 'Yes': %}
               <a>🩸</a>
             {% endif %}
+            {% if day['period_ended'] == 'Yes': %}
+              <a>🎉</a>
+            {% endif %}
         </li>
         {% endfor %}
     </ul>
