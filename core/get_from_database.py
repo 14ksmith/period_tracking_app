@@ -1,19 +1,19 @@
-import sqlite3
-from main import engine
-from time_variables import dict_number_of_days_in_each_month
+from core.initialize_database import initialize_engine, get_db_connection
+import core.time_variables as tv
 
 
-def get_db_connection():
-    """Get a connection to the database that can be used with the Flask app"""
-    conn = sqlite3.connect("period_tracking_app.db")
-    conn.row_factory = sqlite3.Row
-    return conn
+def get_tables():
+    # List of table names in the database
+    engine = initialize_engine()
+    table_names = engine.table_names()
+    return table_names
 
 
 def create_new_month_table(
     table_name,
 ):
     """For the table_name given, create a new table with the following columns."""
+    engine = initialize_engine()
     engine.execute(
         f"CREATE TABLE {table_name} (id Integer, date String, period_started String, period_ended String, cramps String, headache String, fatigue String, acne String)"
     )
@@ -21,7 +21,8 @@ def create_new_month_table(
 
 def add_days_to_month_table(table_name, month_name, month_number, year):
     """Get the number of days in the month given and then for each day, add a row with the following column info into the table_name given inthe database."""
-    num_days_in_month = dict_number_of_days_in_each_month.get(month_name)
+    engine = initialize_engine()
+    num_days_in_month = tv.dict_number_of_days_in_each_month.get(month_name)
     for day in range(1, num_days_in_month + 1):
         table_name = table_name
         id = day

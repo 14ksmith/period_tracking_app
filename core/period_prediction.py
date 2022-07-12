@@ -1,10 +1,15 @@
 from datetime import datetime, timedelta
 import statistics
-from main import table_names, engine
+
+from requests import get
+from core.get_from_database import get_tables
+from core.initialize_database import initialize_engine
 
 
 def get_period_start_days():
     """Get all dates from given table where period_started equals "Yes", turn into datetime object, and add to all_period_start_days list. Return the list."""
+    engine = initialize_engine()
+    table_names = get_tables()
     all_period_start_days = []
     for table in table_names:
         # Get dates from given tablename that have period_started = "Yes"
@@ -23,6 +28,8 @@ def get_period_start_days():
 
 def get_period_end_days():
     """Get all dates from given table where period_ended equals "Yes", turn into datetime object, and add to all_period_end_days list. Return the list."""
+    engine = initialize_engine()
+    table_names = get_tables()
     all_period_end_days = []
     for table in table_names:
         # Get dates from given tablename that have period_ended = "Yes"

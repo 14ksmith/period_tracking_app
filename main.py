@@ -1,39 +1,28 @@
 from flask import Flask, render_template, request, redirect, url_for
-from sqlalchemy import create_engine, MetaData
-from core.time_variables import *
-from core.period_prediction import (
-    get_period_start_days,
-    get_period_end_days,
-    average_time_between_periods,
-    average_menstruation_length,
-    predict_future_period_days,
-)
-from core.database_connection import (
+import core.time_variables as tv
+from core.initialize_database import initialize_engine
+from core.get_from_database import (
+    get_tables,
     create_new_month_table,
     add_days_to_month_table,
     get_db_connection,
     get_table_from_database,
 )
 
-# Create the app and datebase engine
 app = Flask(__name__)
-engine = create_engine("sqlite:///period_tracking_app.db")
-metadata = MetaData(bind=engine)
 
-
-# List of table names in the database
-table_names = engine.table_names()
+table_names = get_tables()
 
 # if there is not already a table in the db with current month and year, for each month in the year make a new table
 if len(table_names) == 0:
     # Month table index
     i = 1
-    for month in list_of_months:
+    for month in tv.list_of_months:
         # Have to include a month table index or the tables will be ordered alphabetically, but I need them ordered by month/year
         #   Also want to include leading zero for any month below 10, which is what "str(i).rjust(2, '0')" is for
-        table_name = f"month_{str(i).rjust(2, '0')}_{month}_{current_year}"
+        table_name = f"month_{str(i).rjust(2, '0')}_{month}_{tv.current_year}"
         # Get the month number from the list_of_months + 1
-        month_number = list_of_months.index(month) + 1
+        month_number = tv.list_of_months.index(month) + 1
         # create a new table for the month
         create_new_month_table(table_name=table_name)
         # add calendar days to the month table created above
@@ -41,13 +30,21 @@ if len(table_names) == 0:
             table_name=table_name,
             month_name=month,
             month_number=month_number,
-            year=current_year,
+            year=tv.current_year,
         )
         # Increase month table index by 1
         i += 1
 
 # TODO: Create if statement that checks if, given the current month, there are tables for the next six months as well
 #           If there are not, then create whatever tables are missing.
+
+from core.period_prediction import (
+    get_period_start_days,
+    get_period_end_days,
+    average_time_between_periods,
+    average_menstruation_length,
+    predict_future_period_days,
+)
 
 # set list of periods start days to 'period_start_days'
 period_start_days = get_period_start_days()
@@ -77,7 +74,7 @@ except:
 @app.route("/")
 def home():
     return render_template(
-        "index.html", current_month=current_month_name, current_year=current_year
+        "index.html", current_month=tv.current_month_name, current_year=tv.current_year
     )
 
 
@@ -91,18 +88,18 @@ def calendar():
     month_and_year_name = f"{month_name} {year}"
     # Get all day entries in the month given
     month_days = get_table_from_database(
-        tablename=f"month_{str((list_of_months.index(month_name)) + 1).rjust(2, '0')}_{month_name}_{year}"
+        tablename=f"month_{str((tv.list_of_months.index(month_name)) + 1).rjust(2, '0')}_{month_name}_{year}"
     )
     try:
         # Get the name of the next month after the month currently viewing
-        next_month = list_of_months[list_of_months.index(month_name) + 1]
+        next_month = tv.list_of_months[tv.list_of_months.index(month_name) + 1]
     except IndexError:
         # if returns index error, means it is the last table, so just send back to the first table month (January)
-        next_month = list_of_months[0]
+        next_month = tv.list_of_months[0]
 
     try:
         # Get the name of the previous month of the month currently viewing
-        previous_month = list_of_months[list_of_months.index(month_name) - 1]
+        previous_month = tv.list_of_months[tv.list_of_months.index(month_name) - 1]
     except IndexError:
         # if returns an index error, means it is the first table, so set previous_month to None
         previous_month = None
@@ -119,10 +116,10 @@ def calendar():
         "calendar.html",
         predicted_period_days=predicted_days_of_period,
         days=month_days,
-        weekday=dict_1st_weekday_in_month.get(month_name),
+        weekday=tv.dict_1st_weekday_in_month.get(month_name),
         month_and_year=month_and_year_name,
         year=year,
-        current_month=current_month_name,
+        current_month=tv.current_month_name,
         month=month_name,
         next_month=next_month,
         last_month=previous_month,
@@ -153,7 +150,7 @@ def day_details():
         # Update fatigue in the database
         update_fatigue = request.form["fatigue"]
         conn.execute(
-            f"UPDATE month_{str((list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year} SET  period_started= ?, period_ended= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
+            f"UPDATE month_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year} SET  period_started= ?, period_ended= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
             " WHERE id = ?",
             (
                 update_period_started,
@@ -176,9 +173,7 @@ def day_details():
     month = request.args.get("month")
     year = request.args.get("year")
     # Create 'table_name' variable using index of 'month' from list of months, 'month', and 'year'
-    table_name = (
-        f"month_{str((list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year}"
-    )
+    table_name = f"month_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year}"
     # Select the day from the table with the given 'day_of_month'
     selected_day = conn.execute(
         f"SELECT * FROM {table_name} WHERE id = ?",
