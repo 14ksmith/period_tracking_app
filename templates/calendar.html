@@ -171,9 +171,9 @@ body {font-family: Verdana, sans-serif;}
               <a>🎉</a>
             {% endif %}
             <!-- If the predicted_period_days is equal to the list and not None...-->
-            {% if predicted_period_days != 'None': %}
+            {% if predicted_period_days != None: %}
               <!-- If the 'date' column for the given day is in the predicted_period_days list, add the 🔘 emoji -->
-              {% if day["date"] in predicted_period_days: %}
+              {% if day['date'] in predicted_period_days: %}
                 <a>🔘</a>
               {% endif %}
             {% endif %}
