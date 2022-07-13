@@ -1,10 +1,9 @@
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import create_engine
 import sqlite3
 
 
 def initialize_engine():
     engine = create_engine("sqlite:///period_tracking_app.db")
-    metadata = MetaData(bind=engine)
     return engine
 
 

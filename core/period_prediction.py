@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import statistics
-from core.get_from_database import get_tables
-from core.initialize_database import initialize_engine
+from database.database import get_tables
+from database.initialize_database import initialize_engine
 
 
 def get_period_start_days():

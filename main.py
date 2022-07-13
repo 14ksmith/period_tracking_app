@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 import core.time_variables as tv
-from core.get_from_database import (
+from calendar import monthrange
+from database.database import (
     get_tables,
     create_new_month_table,
     add_days_to_month_table,
@@ -27,16 +28,17 @@ if len(list_of_table_names) == 0:
     for month in tv.list_of_months:
         # Have to include a month table index or the tables will be ordered alphabetically, but I need them ordered by month/year
         #   Also want to include leading zero for any month below 10, which is what "str(i).rjust(2, '0')" is for
-        table_name = f"month_{str(i).rjust(2, '0')}_{month}_{tv.current_year}"
+        table_name = f"table_{str(i).rjust(2, '0')}_{month}_{tv.current_year}"
         # Get the month number from the list_of_months + 1
         month_number = tv.list_of_months.index(month) + 1
+        # Get the number of days in given month, given the current year
+        total_days_in_month = monthrange(year=tv.current_year, month=(month_number))[1]
         # create a new table for the month
         create_new_month_table(table_name=table_name)
         # add calendar days to the month table created above
         add_days_to_month_table(
-            num_days_in_month=tv.dict_number_of_days_in_each_month,
+            num_days_in_month=total_days_in_month,
             table_name=table_name,
-            month_name=month,
             month_number=month_number,
             year=tv.current_year,
         )
@@ -44,42 +46,73 @@ if len(list_of_table_names) == 0:
         i += 1
 
 
-# # table_names_list_length = len(list_of_table_names)
-# # table_number = table_names_list_length + 1
-# future_month_table_names = []
-# # for month in tv.months_to_add_to_database:
-# #     future_table_name = (
-# #         f"month_{table_number}_{tv.list_of_months[int(month[1])-1]}_{month[0]}"
-# #     )
-# #     future_month_table_names.append(future_table_name)
-# #     table_number += 1
-# # print(future_month_table_names)
+updated_list_of_table_names = get_tables()
+# List of already created table's year and month as string lists (ex: ['2022', '08'])
+list_of_table_year_and_month = []
+# For each tablename in list_of_table_names that are already present in the database...
+for tablename in updated_list_of_table_names:
+    # Split the string at each '_'
+    split_table_name = tablename.split("_")
+    # Set table_year equal to index 3 in split_table_name, which gives the year
+    table_year = split_table_name[3]
+    # Set table_month equal the index in list_of_months (plus 1) that contains the month name given by index 2 in split_table_name,
+    #        then turned into a string and add a leading '0' if the number is below 10
+    table_month = str((tv.list_of_months.index(split_table_name[2])) + 1).rjust(2, "0")
+    # set year_and_month equal to the combined table_year, and table_month as a new list
+    year_and_month = [table_year, table_month]
+    # Add this year_and_month list to the list_of_table_year_and_month
+    list_of_table_year_and_month.append(year_and_month)
 
-# # TODO: if month_table_name not in tv.months_to_add_to_database, add the months
+# Get the length of list_of_table_names
+table_names_list_length = len(updated_list_of_table_names)
+# the first table_number to be added will be the list length plus 1, after that, table_number increases by 1
+table_number = table_names_list_length + 1
+
+for month in tv.months_to_add_to_database:
+    if month not in list_of_table_year_and_month:
+        print("This table is not currently in the database")
+        # Get the name of the given month by turning the timedate object at index 1 into a int, then subtracting 1, and getting the month name from list_of_months at that index
+        month_name = tv.list_of_months[int(month[1]) - 1]
+        # Get the number month in the calendar year at index 1 of the datetime object 'month'
+        month_number = int(month[1])
+        # Get the year at index 0 of the datetime object 'month'
+        year = month[0]
+        # Create the table name for this future month using table_number, month_name and the year
+        future_table_name = f"table_{table_number}_{month_name}_{year}"
+        # increase the table_number by 1
+        table_number += 1
+        # Create a new table for this month in the database
+        create_new_month_table(table_name=future_table_name)
+        # Get the number of days in given month's year and number. Need to specify the return to be index 1, as monthrange gives a tuple
+        total_days_in_month = monthrange(year=int(year), month=month_number)[1]
+        # add calendar days to the month table created above
+        add_days_to_month_table(
+            num_days_in_month=total_days_in_month,
+            table_name=future_table_name,
+            month_number=month_number,
+            year=year,
+        )
+
+# # TODO: if table_name from fututure_month_table_names not in list_of_table_names, add it as a new table to the database.
 # for table_name in future_month_table_names:
 #     if table_name not in list_of_table_names:
 #         print("This table is not currently in the database")
 #         # Create a new table for the month that is not found in table_names
 #         create_new_month_table(table_name=table_name)
+#         # month's datetime object from months_to_add_to_database, using the index of the table_name in future_month_table_names
+#         month_datetime_object = tv.months_to_add_to_database[
+#             future_month_table_names.index(table_name)
+#         ]
+#         # Get the number of days in given month's year and number. Need to specify the return to be index 1, as monthrange gives a tuple
+#         total_days_in_month = monthrange(
+#             year=int(month_datetime_object[0]), month=int(month_datetime_object[1])
+#         )[1]
 #         # add calendar days to the month table created above
 #         add_days_to_month_table(
+#             num_days_in_month=total_days_in_month,
 #             table_name=table_name,
-#             month_name=tv.list_of_months[
-#                 int(
-#                     tv.months_to_add_to_database[
-#                         future_month_table_names.index(table_name)
-#                     ][1]
-#                 )
-#             ],
-#             month_number=int(
-#                 tv.months_to_add_to_database[
-#                     future_month_table_names.index(table_name)
-#                 ][1]
-#             )
-#             - 1,
-#             year=tv.months_to_add_to_database[
-#                 future_month_table_names.index(table_name)
-#             ][0],
+#             month_number=int(month_datetime_object[1]) - 1,
+#             year=month_datetime_object[0],
 #         )
 
 
@@ -123,20 +156,22 @@ def calendar():
     # Get the name of the year from the url arg 'year'
     year = request.args.get("year")
     month_and_year_name = f"{month_name} {year}"
+    # Get the table month number of the given month
+    table_number = tv.list_of_months.index(month_name)
     # Get all day entries in the month given
     month_days = get_table_from_database(
-        tablename=f"month_{str((tv.list_of_months.index(month_name)) + 1).rjust(2, '0')}_{month_name}_{year}"
+        tablename=f"table_{str((table_number) + 1).rjust(2, '0')}_{month_name}_{year}"
     )
     try:
         # Get the name of the next month after the month currently viewing
-        next_month = tv.list_of_months[tv.list_of_months.index(month_name) + 1]
+        next_month = tv.list_of_months[table_number + 1]
     except IndexError:
         # if returns index error, means it is the last table, so just send back to the first table month (January)
         next_month = tv.list_of_months[0]
 
     try:
         # Get the name of the previous month of the month currently viewing
-        previous_month = tv.list_of_months[tv.list_of_months.index(month_name) - 1]
+        previous_month = tv.list_of_months[table_number - 1]
     except IndexError:
         # if returns an index error, means it is the first table, so set previous_month to None
         previous_month = None
@@ -210,7 +245,7 @@ def day_details():
     month = request.args.get("month")
     year = request.args.get("year")
     # Create 'table_name' variable using index of 'month' from list of months, 'month', and 'year'
-    table_name = f"month_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year}"
+    table_name = f"table_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year}"
     # Select the day from the table with the given 'day_of_month'
     selected_day = conn.execute(
         f"SELECT * FROM {table_name} WHERE id = ?",
