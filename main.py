@@ -93,28 +93,7 @@ for month in tv.months_to_add_to_database:
             year=year,
         )
 
-# # TODO: if table_name from fututure_month_table_names not in list_of_table_names, add it as a new table to the database.
-# for table_name in future_month_table_names:
-#     if table_name not in list_of_table_names:
-#         print("This table is not currently in the database")
-#         # Create a new table for the month that is not found in table_names
-#         create_new_month_table(table_name=table_name)
-#         # month's datetime object from months_to_add_to_database, using the index of the table_name in future_month_table_names
-#         month_datetime_object = tv.months_to_add_to_database[
-#             future_month_table_names.index(table_name)
-#         ]
-#         # Get the number of days in given month's year and number. Need to specify the return to be index 1, as monthrange gives a tuple
-#         total_days_in_month = monthrange(
-#             year=int(month_datetime_object[0]), month=int(month_datetime_object[1])
-#         )[1]
-#         # add calendar days to the month table created above
-#         add_days_to_month_table(
-#             num_days_in_month=total_days_in_month,
-#             table_name=table_name,
-#             month_number=int(month_datetime_object[1]) - 1,
-#             year=month_datetime_object[0],
-#         )
-
+final_list_of_months = get_tables()
 
 # set list of periods start days to 'period_start_days'
 period_start_days = get_period_start_days()
@@ -162,6 +141,7 @@ def calendar():
     month_days = get_table_from_database(
         tablename=f"table_{str((table_number) + 1).rjust(2, '0')}_{month_name}_{year}"
     )
+    # TODO: change next_month and previous_month to next_table and previous_table by getting the table number rather than the month number
     try:
         # Get the name of the next month after the month currently viewing
         next_month = tv.list_of_months[table_number + 1]
@@ -222,7 +202,7 @@ def day_details():
         # Update fatigue in the database
         update_fatigue = request.form["fatigue"]
         conn.execute(
-            f"UPDATE month_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year} SET  period_started= ?, period_ended= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
+            f"UPDATE table_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year} SET  period_started= ?, period_ended= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
             " WHERE id = ?",
             (
                 update_period_started,
