@@ -18,7 +18,10 @@ from core.period_prediction import (
     predict_future_period_days,
 )
 
+# Create the flask app
 app = Flask(__name__)
+
+# ----------------------------------------- CREATING TABLES IN DATABASE --------------------------------------------------#
 
 # Create the initial 12 months of tables in the database if there are not already tables in the database
 create_initial_tables()
@@ -26,12 +29,14 @@ create_initial_tables()
 # Get list of the table years and months as strings for each table already created (ex: ['2022', '08'])
 table_years_and_months = get_list_of_table_year_and_month()
 
-# Create any tables for the next 6 months from the current month that are not already in the database.
+# Create any tables for the next 6 months that are not already in the database.
 create_tables_6_months_ahead(table_years_and_months=table_years_and_months)
 
+# ------------------------------------------------------------------------------------------------------------------------#
 
 # set list of periods start days to 'period_start_days'
 period_start_days = get_period_start_days()
+
 # set list of periods end days to 'period_end_days'
 period_end_days = get_period_end_days()
 
@@ -62,34 +67,64 @@ def home():
     )
 
 
+table_years_and_months_list = get_list_of_table_year_and_month()
+
+
 @app.route("/calendar")
 def calendar():
     """View the calendar for the given month and year. Can click on specific days to edit details and navigate to other months."""
     # Get the name of the month from the url arg 'month'
     month_name = request.args.get("month")
+    # Get month number in calendar year as an int (ex: 5)
+    month_number = tv.list_of_months.index(month_name) + 1
+    # Get month number in calendar year as a string with a leading 0 if it is under 10 (ex: '05')
+    month_number_string = str(month_number).rjust(2, "0")
     # Get the name of the year from the url arg 'year'
     year = request.args.get("year")
+    # month year and number as a list
+    month_year_and_number = [year, month_number_string]
+    print(f"Month and year number {month_year_and_number}")
+    # month name and year as a string
     month_and_year_name = f"{month_name} {year}"
+    # index number in table_years_and_months for the given month_year_and_number
+    table_years_and_months_index = table_years_and_months.index(month_year_and_number)
     # Get the table month number of the given month
-    table_number = tv.list_of_months.index(month_name)
+    table_number = str((table_years_and_months_index) + 1).rjust(2, "0")
     # Get all day entries in the month given
     month_days = get_table_from_database(
-        tablename=f"table_{str((table_number) + 1).rjust(2, '0')}_{month_name}_{year}"
+        tablename=f"table_{table_number}_{month_name}_{year}"
     )
+
     # TODO: change next_month and previous_month to next_table and previous_table by getting the table number rather than the month number
     try:
         # Get the name of the next month after the month currently viewing
-        next_month = tv.list_of_months[table_number + 1]
+        next_month = tv.list_of_months[
+            int(table_years_and_months[table_years_and_months_index][1])
+        ]
+        print(f"This is next month:{next_month}")
+        next_month_year = table_years_and_months[table_years_and_months_index][0]
+        print(f"This is next month year:{next_month_year}")
+
     except IndexError:
         # if returns index error, means it is the last table, so just send back to the first table month (January)
-        next_month = tv.list_of_months[0]
+        next_month = None
 
     try:
         # Get the name of the previous month of the month currently viewing
-        previous_month = tv.list_of_months[table_number - 1]
+        previous_month = tv.list_of_months[
+            int(table_years_and_months[table_years_and_months_index - 2][1])
+        ]
+        print(f"This is last month:{previous_month}")
+
+        previous_month_year = table_years_and_months[table_years_and_months_index - 2][
+            0
+        ]
+        print(f"This is last month year:{previous_month_year}")
+
     except IndexError:
         # if returns an index error, means it is the first table, so set previous_month to None
         previous_month = None
+        # previous_month = "February"
 
     try:
         # set predicted_period_days to predicted_period_days
@@ -109,7 +144,9 @@ def calendar():
         current_month=tv.current_month_name,
         month=month_name,
         next_month=next_month,
-        last_month=previous_month,
+        next_month_year=next_month_year,
+        previous_month=previous_month,
+        previous_month_year=previous_month_year,
     )
 
 
