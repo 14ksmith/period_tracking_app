@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
 import core.time_variables as tv
-from core.initialize_database import initialize_engine
 from core.get_from_database import (
     get_tables,
     create_new_month_table,
@@ -9,12 +8,20 @@ from core.get_from_database import (
     get_table_from_database,
 )
 
+from core.period_prediction import (
+    get_period_start_days,
+    get_period_end_days,
+    average_time_between_periods,
+    average_menstruation_length,
+    predict_future_period_days,
+)
+
 app = Flask(__name__)
 
-table_names = get_tables()
+list_of_table_names = get_tables()
 
 # if there is not already a table in the db with current month and year, for each month in the year make a new table
-if len(table_names) == 0:
+if len(list_of_table_names) == 0:
     # Month table index
     i = 1
     for month in tv.list_of_months:
@@ -27,6 +34,7 @@ if len(table_names) == 0:
         create_new_month_table(table_name=table_name)
         # add calendar days to the month table created above
         add_days_to_month_table(
+            num_days_in_month=tv.dict_number_of_days_in_each_month,
             table_name=table_name,
             month_name=month,
             month_number=month_number,
@@ -35,16 +43,45 @@ if len(table_names) == 0:
         # Increase month table index by 1
         i += 1
 
-# TODO: Create if statement that checks if, given the current month, there are tables for the next six months as well
-#           If there are not, then create whatever tables are missing.
 
-from core.period_prediction import (
-    get_period_start_days,
-    get_period_end_days,
-    average_time_between_periods,
-    average_menstruation_length,
-    predict_future_period_days,
-)
+# # table_names_list_length = len(list_of_table_names)
+# # table_number = table_names_list_length + 1
+# future_month_table_names = []
+# # for month in tv.months_to_add_to_database:
+# #     future_table_name = (
+# #         f"month_{table_number}_{tv.list_of_months[int(month[1])-1]}_{month[0]}"
+# #     )
+# #     future_month_table_names.append(future_table_name)
+# #     table_number += 1
+# # print(future_month_table_names)
+
+# # TODO: if month_table_name not in tv.months_to_add_to_database, add the months
+# for table_name in future_month_table_names:
+#     if table_name not in list_of_table_names:
+#         print("This table is not currently in the database")
+#         # Create a new table for the month that is not found in table_names
+#         create_new_month_table(table_name=table_name)
+#         # add calendar days to the month table created above
+#         add_days_to_month_table(
+#             table_name=table_name,
+#             month_name=tv.list_of_months[
+#                 int(
+#                     tv.months_to_add_to_database[
+#                         future_month_table_names.index(table_name)
+#                     ][1]
+#                 )
+#             ],
+#             month_number=int(
+#                 tv.months_to_add_to_database[
+#                     future_month_table_names.index(table_name)
+#                 ][1]
+#             )
+#             - 1,
+#             year=tv.months_to_add_to_database[
+#                 future_month_table_names.index(table_name)
+#             ][0],
+#         )
+
 
 # set list of periods start days to 'period_start_days'
 period_start_days = get_period_start_days()

@@ -1,7 +1,5 @@
 from datetime import datetime, timedelta
 import statistics
-
-from requests import get
 from core.get_from_database import get_tables
 from core.initialize_database import initialize_engine
 
@@ -32,12 +30,12 @@ def get_period_end_days():
     table_names = get_tables()
     all_period_end_days = []
     for table in table_names:
-        # Get dates from given tablename that have period_ended = "Yes"
+        # Get dates from given tablename that have period_ended = "Yes", returns date that looks like: [('2022-03-18',)]
         period_end_days = engine.execute(
             f"SELECT date FROM {table} WHERE period_ended = ?",
             ("Yes",),
         ).fetchall()
-        # For each index in 0 to len(period_ended_days), append all_period_end_days with first index in period_end_days[index]
+        # For each index in 0 to len(period_ended_days), append all_period_end_days with first item in period_end_days[i]
         #       and turn it into a datetime object
         for i in range(0, len(period_end_days)):
             all_period_end_days.append(
@@ -90,7 +88,7 @@ def predict_future_period_days(
 
     # for each index in a range of 6 (this will predict 6 future menstrual cycles)
     for i in range(0, 6):
-
+        # if there are no future_period_dates predicted yet...
         if len(future_period_dates) == 0:
             # find the next period start date by taking the last_period_end_day and adding the days between periods
             next_period_start = last_period_end_day + timedelta(
@@ -117,7 +115,10 @@ def predict_future_period_days(
             for i in range(1, avg_menstruation_length):
                 next_period_date = next_period_start + timedelta(days=i)
                 future_period_dates.append(next_period_date)
+    # For each datetime object in future_period_dates list...
     for i in range(0, len(future_period_dates)):
+        # Turn the datetime object into a string (gives '2023-03-04 00:00:00'), then split the string at the space and get the first item (gives '2023-03-04')
         string_date = str(future_period_dates[i]).split()[0]
+        # Replace the datetime object with the converted string
         future_period_dates[i] = string_date
     return future_period_dates

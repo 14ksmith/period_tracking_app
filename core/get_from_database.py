@@ -1,5 +1,6 @@
 from core.initialize_database import initialize_engine, get_db_connection
-import core.time_variables as tv
+
+# import core.time_variables as tv
 
 
 def get_tables():
@@ -19,10 +20,12 @@ def create_new_month_table(
     )
 
 
-def add_days_to_month_table(table_name, month_name, month_number, year):
+def add_days_to_month_table(
+    num_days_in_month, table_name, month_name, month_number, year
+):
     """Get the number of days in the month given and then for each day, add a row with the following column info into the table_name given inthe database."""
     engine = initialize_engine()
-    num_days_in_month = tv.dict_number_of_days_in_each_month.get(month_name)
+    num_days_in_month = num_days_in_month.get(month_name)
     for day in range(1, num_days_in_month + 1):
         table_name = table_name
         id = day
