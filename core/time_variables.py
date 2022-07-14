@@ -36,11 +36,14 @@ date_of_month = int(current_date.strftime("%d"))
 days_in_month = monthrange(year=current_year, month=current_month)[1]
 # Weekday that the first of the current month is on
 first_of_the_month_weekday = current_date.replace(day=1).strftime("%A")
-# Number weekday (Mon=0) that the first of the month falls on for each month in the given year
-dict_1st_weekday_in_month = {
-    month: weekday(year=current_year, month=(list_of_months.index(month) + 1), day=1)
-    for month in list_of_months
-}
+
+
+def get_1st_day_in_month_weekday(year, month):
+    """Get the day of week of the first of the month as a number (Monday=0) given year and month number. Returns weekday number."""
+    first_of_month_weekday = weekday(year=year, month=month, day=1)
+    return first_of_month_weekday
+
+
 # List that contains a year and a half of months from the current month (gives ex: (datetime.date(2022, 7, 12)))
 
 year_and_half_of_months = []
@@ -56,5 +59,3 @@ for month in range(0, 9):
 months_to_add_to_database = [
     (str(month).split()[0]).split("-")[0:2] for month in year_and_half_of_months
 ]
-
-# print(months_to_add_to_database)

@@ -79,7 +79,7 @@ def calendar():
     month_number = tv.list_of_months.index(month_name) + 1
     # Get month number in calendar year as a string with a leading 0 if it is under 10 (ex: '05')
     month_number_string = str(month_number).rjust(2, "0")
-    # Get the name of the year from the url arg 'year'
+    # Get the year from the url arg 'year'
     year = request.args.get("year")
     # month year and number as a list
     month_year_and_number = [year, month_number_string]
@@ -87,51 +87,58 @@ def calendar():
     month_and_year_name = f"{month_name} {year}"
     # index number in table_years_and_months for the given month_year_and_number
     table_years_and_months_index = table_years_and_months.index(month_year_and_number)
-    # Get the table month number of the given month
+    # Get the table number of the given month as a string, add leading 0 if under 10
     table_number = str((table_years_and_months_index) + 1).rjust(2, "0")
     # Get all day entries in the month given
     month_days = get_table_from_database(
         tablename=f"table_{table_number}_{month_name}_{year}"
     )
+    first_of_month_weekday = tv.get_1st_day_in_month_weekday(
+        year=int(year), month=month_number
+    )
+    print(first_of_month_weekday)
 
-    # Try to get the next year and month from the table_years_and_months list. If not there, next_month and next_month_year = None
+    # Try to get the next year and month from the table_years_and_months list.
     try:
         # Get the name of the next month after the month currently viewing
         next_year_and_month_from_list = table_years_and_months_list[
             table_years_and_months_index + 1
         ]
 
+        # Get the name of the next month by subtracting 1 from the next month number to get the corresponding index in list_of_months
         next_month = tv.list_of_months[int(next_year_and_month_from_list[1]) - 1]
 
+        # Get the next month year by getting the item at index 0 in next_year_and_month_from_list
         next_month_year = next_year_and_month_from_list[0]
 
+    # If not there (IndexError), next_month and next_month_year = None
     except IndexError:
-        # if returns index error, means it is the last table, so just send back to the first table month (January)
+        # if returns index error, means it is the last table
         next_month = None
         next_month_year = None
 
     # Get the previous year and month from the table_years_and_months list if the index is greater than 0.
-    #       If less than 0 (meaning it will go backwards through the list), previous_month and previous_month_year = None
     if table_years_and_months_index - 1 >= 0:
         previous_year_and_month_from_list = table_years_and_months_list[
             table_years_and_months_index - 1
         ]
 
-        # Get the name of the previous month of the month currently viewing
+        # Get the name of the previous month by subtracting 1 from the previous month number to get the corresponding index in list_of_months
         previous_month = tv.list_of_months[
             int(previous_year_and_month_from_list[1]) - 1
         ]
 
+        # Get the previous month year by getting the item at index 0 in previous_year_and_month_from_list
         previous_month_year = previous_year_and_month_from_list[0]
 
+    # If less than 0 (meaning it will go backwards through the list starting at -1), previous_month and previous_month_year = None
     else:
-        # if returns an index error, means it is the first table, so set previous_month to None
         previous_month = None
         previous_month_year = None
 
     # Try to get the predicted future period days if there are any. If there are not,  predicted_days_of_period = None
     try:
-        # set predicted_period_days to predicted_period_days
+        # set predicted_days_of_period equal to predicted_period_days
         predicted_days_of_period = predicted_period_days
     except NameError:
         # if gives a NameError, means there are no predicted days yet, so set predicted_period_days to None
@@ -142,7 +149,7 @@ def calendar():
         "calendar.html",
         predicted_period_days=predicted_days_of_period,
         days=month_days,
-        weekday=tv.dict_1st_weekday_in_month.get(month_name),
+        weekday=first_of_month_weekday,
         month_and_year=month_and_year_name,
         year=year,
         current_month=tv.current_month_name,
