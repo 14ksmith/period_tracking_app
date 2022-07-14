@@ -94,7 +94,7 @@ body {font-family: Verdana, sans-serif;}
             <li class="current_month_cal">
               <a href="{{url_for('calendar', month=current_month, year=year)}}"> Go To Current Month </a>
             </li>
-            {% if last_month != None %}
+            {% if previous_month != None %}
               <!-- 'prev' class for back arrow button that links to the home page with last month's calendar-->
               <li class="prev">
                   <a href="{{url_for('calendar', month=previous_month, year=previous_month_year)}}"> &#10094 </a>

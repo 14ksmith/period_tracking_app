@@ -83,12 +83,10 @@ def calendar():
     year = request.args.get("year")
     # month year and number as a list
     month_year_and_number = [year, month_number_string]
-    print(f"Month and year number: {month_year_and_number}")
     # month name and year as a string
     month_and_year_name = f"{month_name} {year}"
     # index number in table_years_and_months for the given month_year_and_number
     table_years_and_months_index = table_years_and_months.index(month_year_and_number)
-    print(f"Table month index: {table_years_and_months_index}")
     # Get the table month number of the given month
     table_number = str((table_years_and_months_index) + 1).rjust(2, "0")
     # Get all day entries in the month given
@@ -112,8 +110,9 @@ def calendar():
         next_month = None
         next_month_year = None
 
-    # Try to get the previous year and month from the table_years_and_months list. If not there, previous_month and previous_month_year = None
-    try:
+    # Get the previous year and month from the table_years_and_months list if the index is greater than 0.
+    #       If less than 0 (meaning it will go backwards through the list), previous_month and previous_month_year = None
+    if table_years_and_months_index - 1 >= 0:
         previous_year_and_month_from_list = table_years_and_months_list[
             table_years_and_months_index - 1
         ]
@@ -125,7 +124,7 @@ def calendar():
 
         previous_month_year = previous_year_and_month_from_list[0]
 
-    except IndexError:
+    else:
         # if returns an index error, means it is the first table, so set previous_month to None
         previous_month = None
         previous_month_year = None
