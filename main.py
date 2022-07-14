@@ -83,11 +83,12 @@ def calendar():
     year = request.args.get("year")
     # month year and number as a list
     month_year_and_number = [year, month_number_string]
-    print(f"Month and year number {month_year_and_number}")
+    print(f"Month and year number: {month_year_and_number}")
     # month name and year as a string
     month_and_year_name = f"{month_name} {year}"
     # index number in table_years_and_months for the given month_year_and_number
     table_years_and_months_index = table_years_and_months.index(month_year_and_number)
+    print(f"Table month index: {table_years_and_months_index}")
     # Get the table month number of the given month
     table_number = str((table_years_and_months_index) + 1).rjust(2, "0")
     # Get all day entries in the month given
@@ -95,37 +96,41 @@ def calendar():
         tablename=f"table_{table_number}_{month_name}_{year}"
     )
 
-    # TODO: change next_month and previous_month to next_table and previous_table by getting the table number rather than the month number
+    # Try to get the next year and month from the table_years_and_months list. If not there, next_month and next_month_year = None
     try:
         # Get the name of the next month after the month currently viewing
-        next_month = tv.list_of_months[
-            int(table_years_and_months[table_years_and_months_index][1])
+        next_year_and_month_from_list = table_years_and_months_list[
+            table_years_and_months_index + 1
         ]
-        print(f"This is next month:{next_month}")
-        next_month_year = table_years_and_months[table_years_and_months_index][0]
-        print(f"This is next month year:{next_month_year}")
+
+        next_month = tv.list_of_months[int(next_year_and_month_from_list[1]) - 1]
+
+        next_month_year = next_year_and_month_from_list[0]
 
     except IndexError:
         # if returns index error, means it is the last table, so just send back to the first table month (January)
         next_month = None
+        next_month_year = None
 
+    # Try to get the previous year and month from the table_years_and_months list. If not there, previous_month and previous_month_year = None
     try:
+        previous_year_and_month_from_list = table_years_and_months_list[
+            table_years_and_months_index - 1
+        ]
+
         # Get the name of the previous month of the month currently viewing
         previous_month = tv.list_of_months[
-            int(table_years_and_months[table_years_and_months_index - 2][1])
+            int(previous_year_and_month_from_list[1]) - 1
         ]
-        print(f"This is last month:{previous_month}")
 
-        previous_month_year = table_years_and_months[table_years_and_months_index - 2][
-            0
-        ]
-        print(f"This is last month year:{previous_month_year}")
+        previous_month_year = previous_year_and_month_from_list[0]
 
     except IndexError:
         # if returns an index error, means it is the first table, so set previous_month to None
         previous_month = None
-        # previous_month = "February"
+        previous_month_year = None
 
+    # Try to get the predicted future period days if there are any. If there are not,  predicted_days_of_period = None
     try:
         # set predicted_period_days to predicted_period_days
         predicted_days_of_period = predicted_period_days
