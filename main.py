@@ -21,7 +21,7 @@ from core.period_prediction import (
 # Create the flask app
 app = Flask(__name__)
 
-# ----------------------------------------- CREATING TABLES IN DATABASE --------------------------------------------------#
+# -------------------------------------------- CREATE TABLES IN DATABASE --------------------------------------------------#
 
 # Create the initial 12 months of tables in the database if there are not already tables in the database
 create_initial_tables()
@@ -33,6 +33,9 @@ table_years_and_months = get_list_of_table_year_and_month()
 create_tables_6_months_ahead(table_years_and_months=table_years_and_months)
 
 # ------------------------------------------------------------------------------------------------------------------------#
+
+
+# -------------------------------------- PREDICT FUTURE PERIOD DAYS IF POSSIBLE ------------------------------------------#
 
 # set list of periods start days to 'period_start_days'
 period_start_days = get_period_start_days()
@@ -59,6 +62,8 @@ try:
 except:
     pass
 
+# ------------------------------------------------------------------------------------------------------------------------#
+
 
 @app.route("/")
 def home():
@@ -67,7 +72,7 @@ def home():
     )
 
 
-table_years_and_months_list = get_list_of_table_year_and_month()
+updated_table_years_and_months = get_list_of_table_year_and_month()
 
 
 @app.route("/calendar")
@@ -81,12 +86,14 @@ def calendar():
     month_number_string = str(month_number).rjust(2, "0")
     # Get the year from the url arg 'year'
     year = request.args.get("year")
-    # month year and number as a list
-    month_year_and_number = [year, month_number_string]
     # month name and year as a string
     month_and_year_name = f"{month_name} {year}"
-    # index number in table_years_and_months for the given month_year_and_number
-    table_years_and_months_index = table_years_and_months.index(month_year_and_number)
+    # month year and number as a list
+    month_year_and_number = [year, month_number_string]
+    # index number in updated_table_years_and_months for the given month_year_and_number
+    table_years_and_months_index = updated_table_years_and_months.index(
+        month_year_and_number
+    )
     # Get the table number of the given month as a string, add leading 0 if under 10
     table_number = str((table_years_and_months_index) + 1).rjust(2, "0")
     # Get all day entries in the month given
@@ -97,10 +104,10 @@ def calendar():
         year=int(year), month=month_number
     )
 
-    # Try to get the next year and month from the table_years_and_months list.
+    # Try to get the next year and month from the updated_table_years_and_months list.
     try:
         # Get the name of the next month after the month currently viewing
-        next_year_and_month_from_list = table_years_and_months_list[
+        next_year_and_month_from_list = updated_table_years_and_months[
             table_years_and_months_index + 1
         ]
 
@@ -116,9 +123,9 @@ def calendar():
         next_month = None
         next_month_year = None
 
-    # Get the previous year and month from the table_years_and_months list if the index is greater than 0.
+    # Get the previous year and month from the updated_table_years_and_months list if the index is greater than 0.
     if table_years_and_months_index - 1 >= 0:
-        previous_year_and_month_from_list = table_years_and_months_list[
+        previous_year_and_month_from_list = updated_table_years_and_months[
             table_years_and_months_index - 1
         ]
 
@@ -216,14 +223,13 @@ def day_details():
     # month year and number as a list
     month_year_and_number = [year, month_number_string]
     # index number in table_years_and_months for the given month_year_and_number
-    table_years_and_months_index = table_years_and_months.index(month_year_and_number)
+    table_years_and_months_index = updated_table_years_and_months.index(
+        month_year_and_number
+    )
     # Get the table number of the given month as a string, add leading 0 if under 10
     table_number = str((table_years_and_months_index) + 1).rjust(2, "0")
     # Create the table_name given the table number, month, and year
     table_name = f"table_{table_number}_{month}_{year}"
-    # # Create 'table_name' variable using index of 'month' from list of months, 'month', and 'year'
-    # # TODO: have to change how the edit days gets the info for the specific table name. (gives the wrong table number in table name)
-    # table_name = f"table_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year}"
     # Select the day from the table with the given 'day_of_month'
     selected_day = conn.execute(
         f"SELECT * FROM {table_name} WHERE id = ?",
