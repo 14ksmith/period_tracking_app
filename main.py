@@ -96,7 +96,6 @@ def calendar():
     first_of_month_weekday = tv.get_1st_day_in_month_weekday(
         year=int(year), month=month_number
     )
-    print(first_of_month_weekday)
 
     # Try to get the next year and month from the table_years_and_months list.
     try:
@@ -153,6 +152,7 @@ def calendar():
         month_and_year=month_and_year_name,
         year=year,
         current_month=tv.current_month_name,
+        current_month_year=tv.current_year,
         month=month_name,
         next_month=next_month,
         next_month_year=next_month_year,
@@ -172,6 +172,8 @@ def day_details():
         day_of_month = request.form["day"]
         month = request.form["month"]
         year = request.form["year"]
+        # Get the table name from the form
+        table_name = request.form["table_name"]
         # Update the period_started in the database
         update_period_started = request.form["period_start"]
         # Update the period_ended in the database
@@ -185,7 +187,7 @@ def day_details():
         # Update fatigue in the database
         update_fatigue = request.form["fatigue"]
         conn.execute(
-            f"UPDATE table_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year} SET  period_started= ?, period_ended= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
+            f"UPDATE {table_name} SET  period_started= ?, period_ended= ?, cramps = ?, headache = ?, acne = ?, fatigue = ?"
             " WHERE id = ?",
             (
                 update_period_started,
@@ -207,14 +209,33 @@ def day_details():
     day_of_month = request.args.get("date")
     month = request.args.get("month")
     year = request.args.get("year")
-    # Create 'table_name' variable using index of 'month' from list of months, 'month', and 'year'
-    table_name = f"table_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year}"
+    # Get month number in calendar year as an int (ex: 5)
+    month_number = tv.list_of_months.index(month) + 1
+    # Get month number in calendar year as a string with a leading 0 if it is under 10 (ex: '05')
+    month_number_string = str(month_number).rjust(2, "0")
+    # month year and number as a list
+    month_year_and_number = [year, month_number_string]
+    # index number in table_years_and_months for the given month_year_and_number
+    table_years_and_months_index = table_years_and_months.index(month_year_and_number)
+    # Get the table number of the given month as a string, add leading 0 if under 10
+    table_number = str((table_years_and_months_index) + 1).rjust(2, "0")
+    # Create the table_name given the table number, month, and year
+    table_name = f"table_{table_number}_{month}_{year}"
+    # # Create 'table_name' variable using index of 'month' from list of months, 'month', and 'year'
+    # # TODO: have to change how the edit days gets the info for the specific table name. (gives the wrong table number in table name)
+    # table_name = f"table_{str((tv.list_of_months.index(month)) + 1).rjust(2, '0')}_{month}_{year}"
     # Select the day from the table with the given 'day_of_month'
     selected_day = conn.execute(
         f"SELECT * FROM {table_name} WHERE id = ?",
         (day_of_month,),
     ).fetchone()
-    return render_template("day_details.html", day=selected_day, month=month, year=year)
+    return render_template(
+        "day_details.html",
+        day=selected_day,
+        month=month,
+        year=year,
+        table_name=table_name,
+    )
 
 
 if __name__ == "__main__":

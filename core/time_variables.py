@@ -22,20 +22,12 @@ list_of_months = [
 current_date_time = datetime.now()
 # Get only the current date from current_date_time
 current_date = current_date_time.date()
-# current month and year, given in name of month and full year
-current_month_and_year = current_date.strftime("%B_%Y")
 # current year as an int
 current_year = int(current_date.strftime("%Y"))
-# current month as an int
-current_month = int(current_date.strftime("%m"))
 # current month as a name
 current_month_name = current_date.strftime("%B")
 # Current date in the month as an int
 date_of_month = int(current_date.strftime("%d"))
-# Number of days in current month
-days_in_month = monthrange(year=current_year, month=current_month)[1]
-# Weekday that the first of the current month is on
-first_of_the_month_weekday = current_date.replace(day=1).strftime("%A")
 
 
 def get_1st_day_in_month_weekday(year, month):
