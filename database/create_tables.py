@@ -8,7 +8,7 @@ import core.time_variables as tv
 
 
 def create_initial_tables():
-    # if there is not already a table in the db with current month and year, for each month in the year make a new table
+    """If there are no tables in the database, make a new table for each month in the current year"""
     list_of_table_names = get_tables()
     if len(list_of_table_names) == 0:
         # Month table index
@@ -37,6 +37,7 @@ def create_initial_tables():
 
 
 def get_list_of_table_year_and_month():
+    """Get a list of established table names refactored to a list of [year, month] (ex: [['2022', '07'], ['2022', '08']]). Returns the nested list."""
     updated_list_of_table_names = get_tables()
     # List of already created table's year and month as string lists (ex: ['2022', '08'])
     list_of_table_year_and_month = []
@@ -59,6 +60,7 @@ def get_list_of_table_year_and_month():
 
 
 def create_tables_6_months_ahead(table_years_and_months):
+    """Create tables for any months in get_6_months_ahead_list that are not already established in the database."""
     # Get the updated list of tablenames
     updated_list_of_table_names = get_tables()
     # Get the length of list_of_table_names
@@ -66,14 +68,14 @@ def create_tables_6_months_ahead(table_years_and_months):
     # the first table_number to be added will be the list length plus 1, after that, table_number increases by 1
     table_number = table_names_list_length + 1
 
-    for month in tv.months_to_add_to_database:
+    for month in tv.get_6_months_ahead_list():
         if month not in table_years_and_months:
             print("This table is not currently in the database")
             # Get the name of the given month by turning the timedate object at index 1 into a int, then subtracting 1, and getting the month name from list_of_months at that index
             month_name = tv.list_of_months[int(month[1]) - 1]
-            # Get the number month in the calendar year at index 1 of the datetime object 'month'
+            # Get the number month in the calendar year at index 1 of 'month'
             month_number = int(month[1])
-            # Get the year at index 0 of the datetime object 'month'
+            # Get the year at index 0 of 'month'
             year = month[0]
             # Create the table name for this future month using table_number, month_name and the year
             future_table_name = f"table_{table_number}_{month_name}_{year}"

@@ -72,6 +72,8 @@ def home():
     )
 
 
+# Need an updated list of table years and months because if someone creates the database and has to add any six months ahead tables,
+#       they will not be included in the previous list of table_years_and_months
 updated_table_years_and_months = get_list_of_table_year_and_month()
 
 
