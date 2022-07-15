@@ -60,13 +60,13 @@
             <option value="No"> No</option>
             <option value="Yes" selected="selected">Yes</option>
         </select>
-    {% endif %}
-    {% if day['cramps'] == 'No' %}
-        <select name="cramps">
-            <option value="No" selected="selected"> No</option>
-            <option value="Yes">Yes</option>
-        </select>
-    {% endif %}
+        {% endif %}
+        {% if day['cramps'] == 'No' %}
+            <select name="cramps">
+                <option value="No" selected="selected"> No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        {% endif %}
         <br><br>
         <label>Do you have acne? {{ day['acne'] }}</label>
         {% if day['acne'] == 'Yes' %}
