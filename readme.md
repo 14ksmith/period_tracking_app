@@ -8,7 +8,7 @@ Period Tracker is a Python application that tracks user's menstrual cycle's whil
 
 **Note**: The functions of this application are only as accurate as the user is consistent with tracking.
 
-## How to Period Tracker
+## How to Use Period Tracker
 
 ### Installation/Setup
 
