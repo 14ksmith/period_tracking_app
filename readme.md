@@ -20,6 +20,11 @@ Now you are all set to run the app! Run the progam with `python3 main.py`, and c
 
 When the app is run for the first time, a database called `period_tracker.db` will be created. This is where all of your information will be stored and retrieved when using the application. If any period start or period stop days are changed within the app, the application will have to be closed and started again before future predicted period days are updated.
 
+### To Do
+
+- Create notifications to alert user when their period is projected to start.
+- Update style sheet to make the application look more visually appealing.
+
 #### Attributions:
 
 Icon made by Eucalyp from www.flaticon.com
