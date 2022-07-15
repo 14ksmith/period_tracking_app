@@ -13,40 +13,88 @@
     <form action="{{ url_for('day_details') }}" method="POST">
         <!-- Allow user to edit period_started, period_ended, and symptoms. Then save changes to the database-->
         <label>Has your period started? {{ day['period_started'] }}</label>
-        <select name="period_start">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-        </select>
+        {% if day['period_started'] == 'Yes' %}
+            <select name="period_start">
+                <option value="No"> No</option>
+                <option value="Yes" selected="selected">Yes</option>
+            </select>
+        {% endif %}
+        {% if day['period_started'] == 'No' %}
+            <select name="period_start">
+                <option value="No" selected="selected"> No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        {% endif %}
         <br><br>
         <label>Has your period ended? {{ day['period_ended'] }}</label>
-        <select name="period_ended">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-        </select>
+        {% if day['period_ended'] == 'Yes' %}
+            <select name="period_ended">
+                <option value="No"> No</option>
+                <option value="Yes" selected="selected">Yes</option>
+            </select>
+        {% endif %}
+        {% if day['period_ended'] == 'No' %}
+            <select name="period_ended">
+                <option value="No" selected="selected"> No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        {% endif %}
         <br><br>
         <label>Do you have a headache? {{ day['headache'] }}</label>
-        <select name="headache">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-        </select>
+        {% if day['headache'] == 'Yes' %}
+            <select name="headache">
+                <option value="No"> No</option>
+                <option value="Yes" selected="selected">Yes</option>
+            </select>
+        {% endif %}
+        {% if day['headache'] == 'No' %}
+            <select name="headache">
+                <option value="No" selected="selected"> No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        {% endif %}
         <br><br>
         <label>Do you have cramps? {{ day['cramps'] }}</label>
+        {% if day['cramps'] == 'Yes' %}
         <select name="cramps">
-            <option value="No">No</option>
-            <option value="Yes">yes</option>
+            <option value="No"> No</option>
+            <option value="Yes" selected="selected">Yes</option>
         </select>
+    {% endif %}
+    {% if day['cramps'] == 'No' %}
+        <select name="cramps">
+            <option value="No" selected="selected"> No</option>
+            <option value="Yes">Yes</option>
+        </select>
+    {% endif %}
         <br><br>
         <label>Do you have acne? {{ day['acne'] }}</label>
-        <select name="acne">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-        </select>
+        {% if day['acne'] == 'Yes' %}
+            <select name="acne">
+                <option value="No"> No</option>
+                <option value="Yes" selected="selected">Yes</option>
+            </select>
+        {% endif %}
+        {% if day['acne'] == 'No' %}
+            <select name="acne">
+                <option value="No" selected="selected"> No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        {% endif %}
         <br><br>
         <label>Are you feeling tired? {{ day['fatigue'] }}</label>
-        <select name="fatigue">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-        </select>
+        {% if day['fatigue'] == 'Yes' %}
+            <select name="fatigue">
+                <option value="No"> No</option>
+                <option value="Yes" selected="selected">Yes</option>
+            </select>
+        {% endif %}
+        {% if day['fatigue'] == 'No' %}
+            <select name="fatigue">
+                <option value="No" selected="selected"> No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        {% endif %}
         <br><br>
         <!--Include the lines below so that when submitting, can draw the day, month, and year for the specific day from the form so the db can be updated-->
         <input hidden="hidden" name="day" value="{{ day['id'] }}">
