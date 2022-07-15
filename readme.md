@@ -1,16 +1,20 @@
-# Period Tracking App
+# Period Tracker
 
-<img alt ="Calendar image" src="static/calendar.png" width="200">
+<pre>
+                   <img alt ="Calendar image" src="static/calendar.png" width="200">
+</pre>
 
 ## Overview
 
-Period Tracking App is a Python application that tracks user's menstrual cycle's while simultaneously predicting future cycles. Period Tracking App allows users to specify when menstruation starts and stops, as well as any symptoms associated with their menstrual cycle such as headaches, cramps, or fatigue. Through the use of the Period Tracking App, users can confidently monitor their menstrual cycles while maintaining necessary health privacy.
+Period Tracker is a Python application that tracks user's menstrual cycle's while simultaneously predicting future cycles. Period Tracker allows users to specify when menstruation starts and stops, as well as any symptoms associated with their menstrual cycle such as headaches, cramps, or fatigue. Through the use of the Period Tracker, users can confidently monitor their menstrual cycles while maintaining necessary health privacy.
 
-Note: The functions of this application are only as accurate as the user is consistent with tracking.
+**Note**: The functions of this application are only as accurate as the user is consistent with tracking.
 
-## How to use Period Tracker App
+## How to Period Tracker
 
 ### Installation/Setup
+
+Setup of Period Tracker is quick and easy. Before running the program, first install the required packages by running `pip3 install requirements.txt`.
 
 ### Running the App
 
