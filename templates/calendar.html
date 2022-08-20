@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
+  <div class="calendar">
     <div class="month">  
         <ul>
             <li class="current_month_cal">
@@ -79,10 +80,10 @@
         {% endif %}
         <!-- add one position per day in the given month, and display the date for each day.-->
         {% for day in days: %}
-        <li>
+        <li class="calendar_days">
             <!-- Add a link to the url for edit_day, and add the id of the selected day to the end of the url (ex: /edit?id=1)-->
             <!-- The link is followed by clicking on each number day in the calendar-->
-            <a href="{{ url_for('day_details', month=month, date=day['id'], year=year) }}">{{ day["id"] }}</a>
+            <a class = 'day_link' href="{{ url_for('day_details', month=month, date=day['id'], year=year) }}">{{ day["id"] }}</a>
             <!-- If the 'period_started' column for the given day is equal to 'Yes', add the 🩸 emoji -->
             {% if day['period_started'] == 'Yes': %}
               <a>🩸</a>
@@ -90,6 +91,10 @@
             <!-- If the 'period_ended' column for the given day is equal to 'Yes', add the 🎉 emoji -->
             {% if day['period_ended'] == 'Yes': %}
               <a>🎉</a>
+            {% endif %}
+            <!-- If any sympotoms are recorded other than period started or ended show 🌀-->
+            {% if day['headache'] == 'Yes' or day['acne'] == 'Yes' or day['fatigue'] == 'Yes' or day['cramps'] == 'Yes'%}
+              <a>🌀</a>
             {% endif %}
             <!-- If the predicted_period_days is equal to the list and not None...-->
             {% if predicted_period_days != None: %}
@@ -101,5 +106,9 @@
         </li>
         {% endfor %}
     </ul>
+  </div>
+  <div class="key">
+    <p>🩸Period Started &emsp;&emsp;&emsp;🎉Period Ended &emsp;&emsp;&emsp;🔘Potential Period Day &emsp;&emsp;&emsp;🌀Symptoms</p>
+  </div>
 </body>
 </html>

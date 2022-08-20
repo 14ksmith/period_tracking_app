@@ -1,6 +1,8 @@
 # Period Tracker
 
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img alt ="Calendar image" src="static/calendar.png" width="300">
+<p align="center">
+  <img alt ="Calendar Image" src="static/calendar.png" width="300">
+</p>
 
 ## Overview
 
