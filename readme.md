@@ -18,11 +18,11 @@ Setup of Period Tracker is quick and easy. Before running the program, first ins
 
 ### Running Period Tracker
 
-Now you are all set to run the app! Run the progam with `python3 main.py`, and click on `Follow link` that pops up when hovering over `http://127.0.0.1:5000` in the terminal.
+Now you are all set to run the app! Run the program with `python3 main.py`, and click on `Follow link` that pops up when hovering over `http://127.0.0.1:5000` in the terminal.
 
 When the app is run for the first time, a database called `period_tracker.db` will be created. This is where all of your information will be stored and retrieved when using the application. If any period start or period stop days are changed within the app, the application will have to be closed and started again before future predicted period days are updated.
 
-## To Do
+## Upcoming Features
 
 - Create notifications to alert user when their period is projected to start.
 - Update style sheet to make the application look more visually appealing.
