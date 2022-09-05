@@ -14,7 +14,7 @@ Period Tracker is a Python application that tracks user's menstrual cycle's whil
 
 ### Installation/Setup
 
-Setup of Period Tracker is quick and easy. Before running the program, first install the required packages by running `pip3 install requirements.txt`.
+Setup of Period Tracker is quick and easy. Before running the program, first install the required packages by running `pip3 install -r requirements.txt`.
 
 ### Running Period Tracker
 
